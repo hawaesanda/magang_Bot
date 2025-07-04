@@ -1,120 +1,150 @@
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-import requests
 import os
 import logging
 import pytz
+import requests
+import time
+import asyncio
+from datetime import time as dt_time
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Konfigurasi logging untuk debugging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
+# --- Konfigurasi ---
+TOKEN = "7941038639:AAGOUrsa05AbgV46g-WmLszUig26Fd-tIDk"
 
-TOKEN = "7941038639:AAE1RCoWFE85yfxXm4neRWABBqBdQhdSWV0"
-
-LOOKER_STUDIO_MSA_WSA_URL = "https://lookerstudio.google.com/s/tR0woFxlU6g"
-LOOKER_STUDIO_PILATEN_URL = "https://lookerstudio.google.com/s/sw2UI-AT_Yw"
+LOOKER_STUDIO_MSA_WSA_URL = "https://lookerstudio.google.com/s/qR3tgLG4-hQ"
+LOOKER_STUDIO_PILATEN_URL = "https://lookerstudio.google.com/s/s2yRKBhqWME"
 
 # Mengambil image laporan menggunakan ScreenshotAPI.net
-SCREENSHOT_API_KEY = "5AMQNJ2-48649WX-GDNY765-F9DH7HY"
+SCREENSHOT_API_KEY = "7WSF13V-V5XM4HB-Q7TZQQE-X59GJKH"
 SCREENSHOT_API_URL = "https://shot.screenshotapi.net/screenshot"
 
 TARGET_CHAT_ID = "1003337187" 
+TIMEZONE = pytz.timezone("Asia/Jakarta")
 
-# Zona waktu untuk penjadwalan (Malang, Indonesia = Asia/Jakarta)
-TIMEZONE = pytz.timezone('Asia/Jakarta')
+# --- Logging ---
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
-# --- Fungsi untuk Mengambil Screenshot ---
+# --- Fungsi Screenshot ---
 def get_looker_studio_screenshot(looker_studio_url: str, output_filename: str) -> str | None:
-    """
-    Mengambil screenshot dari URL Looker Studio yang diberikan dan menyimpannya secara lokal.
-    Mengembalikan path ke file gambar yang disimpan, atau None jika gagal.
-    """
-    if SCREENSHOT_API_KEY == "YOUR_SCREENSHOTAPI_NET_KEY" or not SCREENSHOT_API_KEY:
-        logger.error("ERROR: SCREENSHOT_API_KEY belum dikonfigurasi. Harap masukkan kunci API Anda dari screenshotapi.net.")
-        return None
-    
-    if not looker_studio_url:
-        logger.error("ERROR: URL Looker Studio tidak boleh kosong.")
-        return None
-
     params = {
         "token": SCREENSHOT_API_KEY,
         "url": looker_studio_url,
-        "width": 1920,  
-        "height": 1080, 
+        "width": 1920,
+        "height": 1080,
         "full_page": "true",
-        "delay": 5000
+        "delay": 5000,
+        "click_to_crop": "true",
+        "element": "#page-0"
     }
-    
+
     try:
-        logger.info(f"Mencoba mengambil screenshot dari: {looker_studio_url}")
         response = requests.get(SCREENSHOT_API_URL, params=params, stream=True)
         response.raise_for_status()
         response_json = response.json()
-        image_url = response_json.get('screenshot')
+
+        logger.info(f"Screenshot API response: {response_json}")
+
+        image_url = response_json.get("screenshot")
         if not image_url:
-            logger.error(f"ERROR: Tidak ada URL screenshot ditemukan dalam respons dari ScreenshotAPI.net. Respons: {response_json}")
+            logger.error("❌ Tidak ada URL screenshot ditemukan.")
             return None
-        logger.info(f"URL Gambar Screenshot Diterima: {image_url}")
-        image_data_response = requests.get(image_url, stream=True)
-        image_data_response.raise_for_status()
-        with open(output_filename, 'wb') as f:
-            for chunk in image_data_response.iter_content(chunk_size=8192):
+
+        time.sleep(3)
+
+        image_data = requests.get(image_url, stream=True)
+        image_data.raise_for_status()
+
+        with open(output_filename, "wb") as f:
+            for chunk in image_data.iter_content(8192):
                 f.write(chunk)
-        logger.info(f"Screenshot berhasil disimpan secara lokal: {output_filename}")
+
         return output_filename
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Kesalahan jaringan atau HTTP saat mengambil screenshot dari {looker_studio_url}: {e}")
-        return None
+
     except Exception as e:
-        logger.error(f"Terjadi kesalahan tak terduga saat memproses screenshot: {e}", exc_info=True)
+        logger.error(f"❌ Gagal mengambil screenshot: {e}")
         return None
 
-# --- Perintah Bot ---
+# --- Command Handlers ---
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Halo! Berikut daftar perintah:\n"
+        "/msawsa - Kirim snapshot dashboard MSA/WSA\n"
+        "/pilaten - Kirim snapshot dashboard PI LATEN"
+    )
+
 async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Mengambil screenshot Dashboard MSA/WSA, harap tunggu sebentar...")
-    image_path = get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "msawsa_dashboard.png")
-    if image_path and os.path.exists(image_path):
-        with open(image_path, "rb") as image_file:
-            await update.message.reply_photo(image_file, caption="Laporan MSA/WSA:")
-        os.remove(image_path)
-        logger.info(f"File screenshot lokal dihapus: {image_path}")
+    await update.message.reply_text("🔄 Sedang mengambil snapshot dashboard MSA/WSA...")
+    path = get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "msawsa.png")
+    if path and os.path.exists(path):
+        with open(path, "rb") as f:
+            await update.message.reply_photo(f, caption="Laporan MSA/WSA")
+        os.remove(path)
     else:
-        await update.message.reply_text("Maaf, gagal mengambil screenshot dashboard MSA/WSA. "
-                                        "Periksa log untuk detail lebih lanjut dan pastikan "
-                                        "API Key ScreenshotAPI.net sudah benar dan dashboard dapat diakses publik.")
+        await update.message.reply_text("❌ Gagal mengambil screenshot dashboard MSA/WSA.")
 
 async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Mengambil screenshot Dashboard PI LATEN, harap tunggu sebentar...")
-    image_path = get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten_dashboard.png")
-    if image_path and os.path.exists(image_path):
-        with open(image_path, "rb") as image_file:
-            await update.message.reply_photo(image_file, caption="Laporan PI LATEN:")
-        os.remove(image_path)
-        logger.info(f"File screenshot lokal dihapus: {image_path}")
+    await update.message.reply_text("🔄 Sedang mengambil snapshot dashboard PI LATEN...")
+    path = get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten.png")
+    if path and os.path.exists(path):
+        with open(path, "rb") as f:
+            await update.message.reply_photo(f, caption="Laporan PI LATEN")
+        os.remove(path)
     else:
-        await update.message.reply_text("Maaf, gagal mengambil screenshot dashboard PI LATEN. "
-                                        "Periksa log untuk detail lebih lanjut dan pastikan "
-                                        "API Key ScreenshotAPI.net sudah benar dan dashboard dapat diakses publik.")
+        await update.message.reply_text("❌ Gagal mengambil screenshot dashboard PI LATEN.")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = (
-        "Selamat datang! Berikut daftar perintah yang bisa digunakan:\n\n"
-        "/start - Menampilkan pesan ini\n"
-        "/msawsa - Melihat laporan MSA/WSA\n"
-        "/pilaten - Melihat dashboard PI LATEN\n"
-    )
-    await update.message.reply_text(message, parse_mode='Markdown')
+# --- Kirim Otomatis Gabungan ---
+async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
+    # --- MSA/WSA ---
+    path1 = get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png")
+    if path1 and os.path.exists(path1):
+        with open(path1, "rb") as f:
+            await context.bot.send_photo(
+                chat_id=TARGET_CHAT_ID,
+                photo=f,
+                caption="🔔 Snapshot (Otomatis) MSA/WSA",
+                parse_mode="Markdown"
+            )
+        os.remove(path1)
+    else:
+        logger.error("❌ Gagal kirim otomatis MSA/WSA")
 
-# --- Fungsi Utama (Main Execution) ---
+    # Delay sebelum kirim PI LATEN
+    await asyncio.sleep(5)
+
+    # --- PI LATEN ---
+    path2 = get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png")
+    if path2 and os.path.exists(path2):
+        with open(path2, "rb") as f:
+            await context.bot.send_photo(
+                chat_id=TARGET_CHAT_ID,
+                photo=f,
+                caption="🔔 Snapshot (Otomatis) PI LATEN",
+                parse_mode="Markdown"
+            )
+        os.remove(path2)
+    else:
+        logger.error("❌ Gagal kirim otomatis PI LATEN")
+
+# --- Fungsi Utama ---
 def main():
-    app = Application.builder().token(TOKEN).build()
+    app = ApplicationBuilder().token(TOKEN).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("msawsa", msawsa))
     app.add_handler(CommandHandler("pilaten", pilaten))
 
-    logger.info("Bot Telegram dimulai dan mendengarkan pesan...")
+    job_queue = app.job_queue
+    time_morning = dt_time(9, 0, tzinfo=TIMEZONE)
+    time_evening = dt_time(16, 49, tzinfo=TIMEZONE)
+
+    job_queue.run_daily(send_all_snapshots, time=time_morning)
+    job_queue.run_daily(send_all_snapshots, time=time_evening)
+
+    logger.info("Bot dimulai dengan jadwal otomatis.")
     app.run_polling()
 
 if __name__ == "__main__":
