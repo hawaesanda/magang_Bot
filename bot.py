@@ -139,7 +139,7 @@ def main():
 
     job_queue = app.job_queue
     time_morning = dt_time(9, 0, tzinfo=TIMEZONE)
-    time_evening = dt_time(16, 49, tzinfo=TIMEZONE)
+    time_evening = dt_time(21, 0, tzinfo=TIMEZONE)
 
     job_queue.run_daily(send_all_snapshots, time=time_morning)
     job_queue.run_daily(send_all_snapshots, time=time_evening)
