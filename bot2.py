@@ -77,9 +77,8 @@ SECTION_COORDINATES = {
     "ASSURANCE_BGES": (485, 620, 810, 990),  # baris 2 kolom 2
     "MSA_ASSURANCE": (1205, 330, 1690, 690),  # baris 2 kolom 3
     "MSA_CNOP": (800, 515, 1210, 998),        # baris 3 kolom 1
-    "MSA_QUALITY": (1294, 706, 1700, 1020)    # baris 3 kolom 3
+    "MSA_QUALITY": (1205, 696, 1685, 995)    # baris 3 kolom 3
 }
-
 
 async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
