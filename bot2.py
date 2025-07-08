@@ -69,16 +69,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 # Daftar section dan posisi crop-nya (left, top, right, bottom)
 SECTION_COORDINATES = {
-    "FULL_DASHBOARD": (480, 80, 1700, 1020),
-    "FULFILLMENT_FBB": (295, 60, 590, 312),
-    "ASSURANCE_FBB": (681, 0, 1055, 248),
-    "SCORE_CREDIT": (1055, 0, 1680, 248),
-    "FULFILLMENT_BGES": (397, 248, 681, 504),
-    "ASSURANCE_BGES": (681, 248, 1055, 504),
-    "MSA_ASSURANCE": (1055, 248, 1680, 504),
-    "MSA_CNOP": (397, 504, 681, 758),
-    "MSA_QUALITY": (1055, 504, 1680, 758)
+    "FULL_DASHBOARD": (480, 80, 1700, 1020),  # keseluruhan canvas
+    "FULFILLMENT_FBB": (480, 80, 820, 370),   # baris 1 kolom 1
+    "ASSURANCE_FBB": (887, 80, 1294, 393),    # baris 1 kolom 2
+    "SCORE_CREDIT": (1294, 80, 1700, 393),    # baris 1 kolom 3
+    "FULFILLMENT_BGES": (480, 393, 887, 706), # baris 2 kolom 1
+    "ASSURANCE_BGES": (887, 393, 1294, 706),  # baris 2 kolom 2
+    "MSA_ASSURANCE": (1294, 393, 1700, 706),  # baris 2 kolom 3
+    "MSA_CNOP": (480, 706, 887, 1020),        # baris 3 kolom 1
+    "MSA_QUALITY": (1294, 706, 1700, 1020)    # baris 3 kolom 3
 }
+
 
 async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
