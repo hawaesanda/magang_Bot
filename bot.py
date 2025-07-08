@@ -1,24 +1,22 @@
 import os
 import logging
 import pytz
-import requests
-import time
 import asyncio
 from datetime import time as dt_time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
+from playwright.async_api import async_playwright
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 # --- Konfigurasi ---
 TOKEN = "7941038639:AAGOUrsa05AbgV46g-WmLszUig26Fd-tIDk"
 
-LOOKER_STUDIO_MSA_WSA_URL = "https://lookerstudio.google.com/s/qR3tgLG4-hQ"
+LOOKER_STUDIO_MSA_WSA_URL = "https://lookerstudio.google.com/reporting/c3dde9be-7050-40d9-b9b0-ebcaf65ac573"
 LOOKER_STUDIO_PILATEN_URL = "https://lookerstudio.google.com/s/s2yRKBhqWME"
 
-# Mengambil image laporan menggunakan ScreenshotAPI.net
-SCREENSHOT_API_KEY = "7WSF13V-V5XM4HB-Q7TZQQE-X59GJKH"
-SCREENSHOT_API_URL = "https://shot.screenshotapi.net/screenshot"
-
-TARGET_CHAT_ID = "1003337187" 
+TARGET_CHAT_ID = "1003337187"
 TIMEZONE = pytz.timezone("Asia/Jakarta")
 
 # --- Logging ---
@@ -28,44 +26,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- Fungsi Screenshot ---
-def get_looker_studio_screenshot(looker_studio_url: str, output_filename: str) -> str | None:
-    params = {
-        "token": SCREENSHOT_API_KEY,
-        "url": looker_studio_url,
-        "width": 1920,
-        "height": 1080,
-        "full_page": "true",
-        "delay": 5000,
-        "click_to_crop": "true",
-        "element": "#page-0"
-    }
-
+# --- Fungsi Screenshot Pakai Playwright ---
+async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: str) -> str | None:
     try:
-        response = requests.get(SCREENSHOT_API_URL, params=params, stream=True)
-        response.raise_for_status()
-        response_json = response.json()
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(
+                viewport={"width": 1920, "height": 1080}
+            )
+            page = await context.new_page()
 
-        logger.info(f"Screenshot API response: {response_json}")
+            logger.info(f"Membuka URL: {looker_studio_url}")
+            await page.goto(looker_studio_url, timeout=60000)
 
-        image_url = response_json.get("screenshot")
-        if not image_url:
-            logger.error("❌ Tidak ada URL screenshot ditemukan.")
-            return None
+            # Delay agar halaman termuat penuh
+            await page.wait_for_timeout(7000)
 
-        time.sleep(3)
+            # Screenshot seluruh halaman
+            await page.screenshot(path=output_filename, full_page=True)
 
-        image_data = requests.get(image_url, stream=True)
-        image_data.raise_for_status()
-
-        with open(output_filename, "wb") as f:
-            for chunk in image_data.iter_content(8192):
-                f.write(chunk)
+            await browser.close()
 
         return output_filename
-
     except Exception as e:
-        logger.error(f"❌ Gagal mengambil screenshot: {e}")
+        logger.error(f"❌ Gagal mengambil screenshot pakai Playwright: {e}")
         return None
 
 # --- Command Handlers ---
@@ -78,7 +62,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔄 Sedang mengambil snapshot dashboard MSA/WSA...")
-    path = get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "msawsa.png")
+    path = await get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "msawsa.png")
     if path and os.path.exists(path):
         with open(path, "rb") as f:
             await update.message.reply_photo(f, caption="Laporan MSA/WSA")
@@ -88,7 +72,7 @@ async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔄 Sedang mengambil snapshot dashboard PI LATEN...")
-    path = get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten.png")
+    path = await get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten.png")
     if path and os.path.exists(path):
         with open(path, "rb") as f:
             await update.message.reply_photo(f, caption="Laporan PI LATEN")
@@ -99,31 +83,28 @@ async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- Kirim Otomatis Gabungan ---
 async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
     # --- MSA/WSA ---
-    path1 = get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png")
+    path1 = await get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png")
     if path1 and os.path.exists(path1):
         with open(path1, "rb") as f:
             await context.bot.send_photo(
                 chat_id=TARGET_CHAT_ID,
                 photo=f,
-                caption="🔔 Snapshot (Otomatis) MSA/WSA",
-                parse_mode="Markdown"
+                caption="🔔 Snapshot (Otomatis) MSA/WSA"
             )
         os.remove(path1)
     else:
         logger.error("❌ Gagal kirim otomatis MSA/WSA")
 
-    # Delay sebelum kirim PI LATEN
     await asyncio.sleep(5)
 
     # --- PI LATEN ---
-    path2 = get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png")
+    path2 = await get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png")
     if path2 and os.path.exists(path2):
         with open(path2, "rb") as f:
             await context.bot.send_photo(
                 chat_id=TARGET_CHAT_ID,
                 photo=f,
-                caption="🔔 Snapshot (Otomatis) PI LATEN",
-                parse_mode="Markdown"
+                caption="🔔 Snapshot (Otomatis) PI LATEN"
             )
         os.remove(path2)
     else:
