@@ -71,8 +71,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 SECTION_COORDINATES = {
     "FULL_DASHBOARD": (480, 80, 1700, 1020),  # keseluruhan canvas
     "FULFILLMENT_FBB": (480, 80, 820, 370),   # baris 1 kolom 1
-    "ASSURANCE_FBB": (887, 80, 1294, 393),    # baris 1 kolom 2
-    "SCORE_CREDIT": (1294, 80, 1700, 393),    # baris 1 kolom 3
+    "ASSURANCE_FBB": (800, 170, 1210, 525),    # baris 1 kolom 2
+    "SCORE_CREDIT": (1200, 170, 1700, 330),    # baris 1 kolom 3
     "FULFILLMENT_BGES": (480, 393, 887, 706), # baris 2 kolom 1
     "ASSURANCE_BGES": (887, 393, 1294, 706),  # baris 2 kolom 2
     "MSA_ASSURANCE": (1294, 393, 1700, 706),  # baris 2 kolom 3
