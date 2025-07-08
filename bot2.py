@@ -139,8 +139,9 @@ async def handle_section_crop(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # Kirim ulang pilihan section (di pesan baru)
     keyboard = [
-        [InlineKeyboardButton("FULFILLMENT_FBB", callback_data='FULFILLMENT_FBB'),
-         InlineKeyboardButton("ASSURANCE_FBB", callback_data='ASSURANCE_FBB')],
+        [InlineKeyboardButton("FULL DASHBOARD", callback_data='FULL_DASHBOARD')],
+        [InlineKeyboardButton("FULFILLMENT FBB", callback_data='FULFILLMENT_FBB'),
+         InlineKeyboardButton("ASSURANCE FBB", callback_data='ASSURANCE_FBB')],
         [InlineKeyboardButton("SCORE CREDIT", callback_data='SCORE_CREDIT'),
          InlineKeyboardButton("FULFILLMENT BGES", callback_data='FULFILLMENT_BGES')],
         [InlineKeyboardButton("ASSURANCE BGES", callback_data='ASSURANCE_BGES'),
