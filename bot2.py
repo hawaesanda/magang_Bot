@@ -70,13 +70,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Daftar section dan posisi crop-nya (left, top, right, bottom)
 SECTION_COORDINATES = {
     "FULL_DASHBOARD": (480, 80, 1700, 1020),  # keseluruhan canvas
-    "FULFILLMENT_FBB": (480, 80, 820, 370),   # baris 1 kolom 1
+    "FULFILLMENT_FBB": (485, 80, 820, 370),   # baris 1 kolom 1
     "ASSURANCE_FBB": (800, 170, 1210, 525),    # baris 1 kolom 2
     "SCORE_CREDIT": (1200, 170, 1700, 330),    # baris 1 kolom 3
-    "FULFILLMENT_BGES": (480, 360, 820, 620), # baris 2 kolom 1
-    "ASSURANCE_BGES": (887, 393, 1294, 706),  # baris 2 kolom 2
-    "MSA_ASSURANCE": (1294, 393, 1700, 706),  # baris 2 kolom 3
-    "MSA_CNOP": (480, 706, 887, 1020),        # baris 3 kolom 1
+    "FULFILLMENT_BGES": (485, 360, 820, 620), # baris 2 kolom 1
+    "ASSURANCE_BGES": (485, 620, 810, 990),  # baris 2 kolom 2
+    "MSA_ASSURANCE": (1205, 330, 1690, 690),  # baris 2 kolom 3
+    "MSA_CNOP": (800, 515, 1210, 998),        # baris 3 kolom 1
     "MSA_QUALITY": (1294, 706, 1700, 1020)    # baris 3 kolom 3
 }
 
