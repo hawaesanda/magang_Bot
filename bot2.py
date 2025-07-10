@@ -158,28 +158,34 @@ async def handle_section_crop(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 # --- Command: /pilaten ---
-CROP_PILATEN = (250, 250, 1250, 850)
+CROP_PILATEN = (480, 80, 1700, 1020)
 async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🔄 Sedang mengambil gambar Laporan PI LATEN. Harap tunggu...")
+    await update.message.reply_text("Memuat Laporan PI LATEN.\nMohon Tunggu Sebentar.")
 
     path = await get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten.png", CROP_PILATEN)
     if path and os.path.exists(path):
         with open(path, "rb") as f:
-            await update.message.reply_photo(f, caption="📊 Laporan PI LATEN")
+            await update.message.reply_photo(f, caption="Laporan PI LATEN")
         os.remove(path)
     else:
-        await update.message.reply_text("❌ Gagal mengambil gambar PI LATEN.")
+        await update.message.reply_text("Gagal mengambil gambar PI LATEN. Mohon coba lagi.")
 
 # --- Auto Job Scheduler ---
 async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
+    now = datetime.now(TIMEZONE).strftime("%d-%m-%Y %H:%M")
+
     # MSA/WSA
     path1 = await get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png", SECTION_COORDINATES["FULL_DASHBOARD"])
     if path1 and os.path.exists(path1):
         with open(path1, "rb") as f:
-            await context.bot.send_photo(chat_id=TARGET_CHAT_ID, photo=f, caption="🔔 Snapshot MSA/WSA")
+            await context.bot.send_photo(
+                chat_id=TARGET_CHAT_ID,
+                photo=f,
+                caption=f"Laporan MSA/WSA\n🕘 {now}"
+            )
         os.remove(path1)
     else:
-        logger.error("❌ Gagal kirim snapshot MSA/WSA")
+        logger.error("Gagal kirim snapshot MSA/WSA. Coba lagi nanti.")
 
     await asyncio.sleep(5)
 
@@ -187,10 +193,14 @@ async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
     path2 = await get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", CROP_PILATEN)
     if path2 and os.path.exists(path2):
         with open(path2, "rb") as f:
-            await context.bot.send_photo(chat_id=TARGET_CHAT_ID, photo=f, caption="🔔 Snapshot PI LATEN")
+            await context.bot.send_photo(
+                chat_id=TARGET_CHAT_ID,
+                photo=f,
+                caption=f"Laporan PI LATEN\n🕘 {now}"
+            )
         os.remove(path2)
     else:
-        logger.error("❌ Gagal kirim snapshot PI LATEN")
+        logger.error("Gagal kirim snapshot PI LATEN. Coba lagi nanti.")
 
 # --- Main Bot ---
 def main():
