@@ -9,6 +9,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Callb
 from PIL import Image
 from playwright.async_api import async_playwright
 
+# Persistent browser instance
+persistent_browser = None
+
 # --- Konfigurasi ---
 TOKEN = "7941038639:AAGOUrsa05AbgV46g-WmLszUig26Fd-tIDk"
 LOOKER_STUDIO_MSA_WSA_URL = "https://lookerstudio.google.com/s/i3tlaggtDik"
@@ -22,6 +25,14 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+async def init_browser():
+    global persistent_browser
+    if persistent_browser is None:
+        from playwright.async_api import async_playwright
+        playwright = await async_playwright().start()
+        persistent_browser = await playwright.chromium.launch(headless=True)
+        logger.info("✅ Persistent browser started.")
 
 # --- Fungsi Crop ---
 def crop_image(input_path: str, output_path: str, crop_box: tuple[int, int, int, int]) -> str:
@@ -37,21 +48,26 @@ def crop_image(input_path: str, output_path: str, crop_box: tuple[int, int, int,
 
 # --- Fungsi Screenshot ---
 async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: str, crop_box: tuple[int, int, int, int]) -> str | None:
+    global persistent_browser
+    await init_browser()
+
     temp_path = f"full_{output_filename}"
+
     try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(viewport={"width": 1920, "height": 1080})
-            page = await context.new_page()
-            await page.goto(looker_studio_url, timeout=60000)
-            await page.wait_for_timeout(7000)
-            await page.screenshot(path=temp_path, full_page=True)
-            await browser.close()
+        context = await persistent_browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = await context.new_page()
+        await page.goto(looker_studio_url, timeout=60000)
+        await page.wait_for_timeout(7000)
+        await page.screenshot(path=temp_path, full_page=True)
+        await context.close()
+
         cropped_path = crop_image(temp_path, output_filename, crop_box)
         return cropped_path
+
     except Exception as e:
-        logger.error(f"❌ Gagal ambil screenshot pakai Playwright: {e}")
+        logger.error(f"❌ Gagal ambil screenshot dengan persistent browser: {e}")
         return None
+
 
 # Daftar section dan posisi crop-nya (left, top, right, bottom)
 SECTION_COORDINATES = {
@@ -170,6 +186,19 @@ async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("Gagal mengambil gambar PI LATEN. Mohon coba lagi.")
 
+# Cek waktu kerja
+def is_within_working_hours():
+    now = datetime.now(TIMEZONE).time()
+    return dt_time(10, 0) <= now <= dt_time(17, 0)
+
+# Job yang hanya jalan di jam kerja
+async def scheduled_snapshots(context: ContextTypes.DEFAULT_TYPE):
+    if is_within_working_hours():
+        logger.info("⏰ Dalam jam kerja, mengirim snapshot otomatis...")
+        await send_all_snapshots(context)
+    else:
+        logger.info("⏸️ Di luar jam kerja, tidak mengirim snapshot.")
+
 # --- Auto Job Scheduler ---
 async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
     now = datetime.now(TIMEZONE).strftime("%d-%m-%Y %H:%M")
@@ -212,8 +241,8 @@ def main():
     app.add_handler(CallbackQueryHandler(handle_section_crop))
 
     job_queue = app.job_queue
-    job_queue.run_daily(send_all_snapshots, time=dt_time(9, 0, tzinfo=TIMEZONE))
-    job_queue.run_daily(send_all_snapshots, time=dt_time(21, 0, tzinfo=TIMEZONE))
+    job_queue.run_repeating(scheduled_snapshots, interval=1800, first=10)  # 1800 detik = 30 menit
+
 
     logger.info("✅ Bot dimulai...")
     app.run_polling()
