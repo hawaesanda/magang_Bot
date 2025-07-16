@@ -97,23 +97,31 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         greeting = "Selamat malam"
 
     await update.message.reply_text(
-        f"Halo, {greeting}!\n\n"
-        "Silakan pilih laporan yang ingin anda tampilkan:\n"
-        "/msawsa - Laporan MSA/WSA\n"
-        "/pilaten - Laporan PI LATEN"
-    )
+    f"Halo, {greeting}!\n\n"
+    "Silakan pilih laporan yang ingin anda tampilkan:\n"
+    "/msawsa - Laporan MSA/WSA\n"
+    "/pilaten - Laporan PI LATEN\n"
+    "/fulfillment_fbb - Laporan FULFILLMENT FBB\n"
+    "/assurance_fbb - Laporan ASSURANCE FBB\n"
+    "/score_credit - Laporan SCORE CREDIT\n"
+    "/fulfillment_bges - Laporan FULFILLMENT BGES\n"
+    "/assurance_bges - Laporan ASSURANCE BGES\n"
+    "/msa_assurance - Laporan MSA ASSURANCE\n"
+    "/msa_cnop - Laporan MSA CNOP\n"
+    "/msa_quality - Laporan MSA QUALITY"
+)
 
 # --- Command: /msawsa ---
 async def msawsa(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Memuat Laporan MSA/WSA.\nMohon Tunggu Sebentar.", parse_mode="Markdown")
+    await update.message.reply_text("Memuat Laporan MSA/WSA.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
 
     path = await get_looker_studio_screenshot(LOOKER_STUDIO_MSA_WSA_URL, "full_dashboard.png", SECTION_COORDINATES["FULL_DASHBOARD"])
     if path and os.path.exists(path):
         with open(path, "rb") as f:
-            await update.message.reply_photo(f, caption="Laporan MSA/WSA")
+            await update.message.reply_photo(f, caption="📊 Laporan MSA/WSA")
         os.remove(path)
     else:
-        await update.message.reply_text("Gagal menampilkan laporan MSA/WSA.\nMohon coba lagi.")
+        await update.message.reply_text("❌ Gagal menampilkan laporan MSA/WSA.\nMohon coba lagi.")
 
     # Menu 2 kolom
     keyboard = [
@@ -151,7 +159,7 @@ async def handle_section_crop(update: Update, context: ContextTypes.DEFAULT_TYPE
             await context.bot.send_photo(chat_id=query.message.chat_id, photo=f, caption=section.replace("_", " "))
         os.remove(path)
     else:
-        await context.bot.send_message(chat_id=query.message.chat_id, text="Gagal memuat laporan. Silahkan coba lagi.")
+        await context.bot.send_message(chat_id=query.message.chat_id, text="❌ Gagal memuat laporan. Silahkan coba lagi.")
 
     # Kirim ulang pilihan section (di pesan baru)
     keyboard = [
@@ -181,10 +189,50 @@ async def pilaten(update: Update, context: ContextTypes.DEFAULT_TYPE):
     path = await get_looker_studio_screenshot(LOOKER_STUDIO_PILATEN_URL, "pilaten.png", CROP_PILATEN)
     if path and os.path.exists(path):
         with open(path, "rb") as f:
-            await update.message.reply_photo(f, caption="Laporan PI LATEN")
+            await update.message.reply_photo(f, caption="📊 Laporan PI LATEN")
         os.remove(path)
     else:
-        await update.message.reply_text("Gagal mengambil gambar PI LATEN. Mohon coba lagi.")
+        await update.message.reply_text("❌ Gagal mengambil gambar PI LATEN. Mohon coba lagi.")
+
+# command untuk per section
+async def send_section_image(update: Update, context: ContextTypes.DEFAULT_TYPE, section_key: str, section_name: str):
+    await update.message.reply_text(f"Memuat Laporan {section_name}...\nMohon tunggu sebentar.")
+    path = await get_looker_studio_screenshot(
+        LOOKER_STUDIO_MSA_WSA_URL,
+        f"{section_key}.png",
+        SECTION_COORDINATES[section_key]
+    )
+    if path and os.path.exists(path):
+        with open(path, "rb") as f:
+            await update.message.reply_photo(f, caption=f"📊 Laporan {section_name}")
+        os.remove(path)
+    else:
+        await update.message.reply_text(f"❌ Gagal memuat laporan {section_name}.")
+
+# Berikut fungsi shortcut untuk tiap command
+async def fulfillment_fbb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "FULFILLMENT_FBB", "FULFILLMENT FBB")
+
+async def assurance_fbb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "ASSURANCE_FBB", "ASSURANCE FBB")
+
+async def score_credit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "SCORE_CREDIT", "SCORE CREDIT")
+
+async def fulfillment_bges(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "FULFILLMENT_BGES", "FULFILLMENT BGES")
+
+async def assurance_bges(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "ASSURANCE_BGES", "ASSURANCE BGES")
+
+async def msa_assurance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "MSA_ASSURANCE", "MSA ASSURANCE")
+
+async def msa_cnop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "MSA_CNOP", "MSA CNOP")
+
+async def msa_quality(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_section_image(update, context, "MSA_QUALITY", "MSA QUALITY")
 
 # Cek waktu kerja
 def is_within_working_hours():
@@ -210,11 +258,11 @@ async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_photo(
                 chat_id=TARGET_CHAT_ID,
                 photo=f,
-                caption=f"Laporan MSA/WSA\n🕘 {now}"
+                caption=f"📊 Laporan MSA/WSA\n🕘 {now}"
             )
         os.remove(path1)
     else:
-        logger.error("Gagal kirim snapshot MSA/WSA. Coba lagi nanti.")
+        logger.error("❌ Gagal kirim snapshot MSA/WSA. Coba lagi nanti.")
 
     await asyncio.sleep(5)
 
@@ -225,11 +273,11 @@ async def send_all_snapshots(context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_photo(
                 chat_id=TARGET_CHAT_ID,
                 photo=f,
-                caption=f"Laporan PI LATEN\n🕘 {now}"
+                caption=f"📊 Laporan PI LATEN\n🕘 {now}"
             )
         os.remove(path2)
     else:
-        logger.error("Gagal kirim snapshot PI LATEN. Coba lagi nanti.")
+        logger.error("❌ Gagal kirim snapshot PI LATEN. Coba lagi nanti.")
 
 # --- Main Bot ---
 def main():
@@ -239,9 +287,18 @@ def main():
     app.add_handler(CommandHandler("msawsa", msawsa))
     app.add_handler(CommandHandler("pilaten", pilaten))
     app.add_handler(CallbackQueryHandler(handle_section_crop))
+    app.add_handler(CommandHandler("fulfillment_fbb", fulfillment_fbb))
+    app.add_handler(CommandHandler("assurance_fbb", assurance_fbb))
+    app.add_handler(CommandHandler("score_credit", score_credit))
+    app.add_handler(CommandHandler("fulfillment_bges", fulfillment_bges))
+    app.add_handler(CommandHandler("assurance_bges", assurance_bges))
+    app.add_handler(CommandHandler("msa_assurance", msa_assurance))
+    app.add_handler(CommandHandler("msa_cnop", msa_cnop))
+    app.add_handler(CommandHandler("msa_quality", msa_quality))
+
 
     job_queue = app.job_queue
-    job_queue.run_repeating(scheduled_snapshots, interval=1800, first=10)  # 1800 detik = 30 menit
+    job_queue.run_repeating(scheduled_snapshots, interval=3600, first=0)  # update setiap 1 jam akan mengirim ss otomatis
 
 
     logger.info("✅ Bot dimulai...")
