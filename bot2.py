@@ -1,47 +1,30 @@
-import os
 import logging
-import pytz
-import asyncio
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
-from config import TOKEN
-import utils
-from scheduler import scheduled_snapshots
-from handlers import (
-    start, msawsa, pilaten, handle_section_crop,
-    fulfillment_fbb, assurance_fbb, score_credit,
-    fulfillment_bges, assurance_bges, msa_assurance,
-    msa_cnop, msa_quality
-)
+from telegram.ext import ApplicationBuilder, CommandHandler
+from datetime import time as dt_time
+import config
+import handlers
+import scheduler
 
-# --- Logging ---
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
-logger = logging.getLogger(__name__)
 
-# --- Main Bot ---
 def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = ApplicationBuilder().token(config.TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("msawsa", msawsa))
-    app.add_handler(CommandHandler("pilaten", pilaten))
-    app.add_handler(CallbackQueryHandler(handle_section_crop))
-    app.add_handler(CommandHandler("fulfillment_fbb", fulfillment_fbb))
-    app.add_handler(CommandHandler("assurance_fbb", assurance_fbb))
-    app.add_handler(CommandHandler("score_credit", score_credit))
-    app.add_handler(CommandHandler("fulfillment_bges", fulfillment_bges))
-    app.add_handler(CommandHandler("assurance_bges", assurance_bges))
-    app.add_handler(CommandHandler("msa_assurance", msa_assurance))
-    app.add_handler(CommandHandler("msa_cnop", msa_cnop))
-    app.add_handler(CommandHandler("msa_quality", msa_quality))
+    # Command handlers
+    app.add_handler(CommandHandler("start", handlers.start))
+    app.add_handler(CommandHandler("msawsa", handlers.msawsa))
+    app.add_handler(CommandHandler("pilaten", handlers.pilaten))
 
-
+    # Jadwal otomatis pukul 10:00, 14:00, 17:00
     job_queue = app.job_queue
-    job_queue.run_repeating(scheduled_snapshots, interval=3600, first=10)  # update setiap 1 jam akan mengirim ss otomatis
+    job_queue.run_daily(scheduler.scheduled_snapshots, time=dt_time(10, 0), name="job_pukul_10")
+    job_queue.run_daily(scheduler.scheduled_snapshots, time=dt_time(14, 0), name="job_pukul_14")
+    job_queue.run_daily(scheduler.scheduled_snapshots, time=dt_time(17, 0), name="job_pukul_17")
 
-    logger.info("✅ Bot dimulai...")
+    logging.info("✅ Bot dimulai...")
     app.run_polling()
 
 if __name__ == "__main__":
