@@ -8,5 +8,5 @@ magang_Bot/
 ├── requirements.txt     # Daftar dependensi Python
 ├── .env                 # (Opsional) Variabel environment
 ├── .gitignore           # File yang diabaikan Git
-├── render.yaml          # Deployment config (opsional)
-└── full_MSA/            # (Kosong / Tidak dipakai)
+└── render.yaml          # Deployment config (opsional)
+
