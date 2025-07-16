@@ -39,7 +39,7 @@ def main():
 
 
     job_queue = app.job_queue
-    job_queue.run_repeating(scheduled_snapshots, interval=3600, first=0)  # update setiap 1 jam akan mengirim ss otomatis
+    job_queue.run_repeating(scheduled_snapshots, interval=3600, first=10)  # update setiap 1 jam akan mengirim ss otomatis
 
     logger.info("✅ Bot dimulai...")
     app.run_polling()
