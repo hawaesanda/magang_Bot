@@ -12,7 +12,7 @@ async def scheduled_snapshots(context):
     logger.info(f"⏰ Mengirim snapshot otomatis... [{now}]")
 
     # MSA/WSA
-    path1 = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png", config.CROP_MSA_WSA)
+    path1 = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png", config.CROP_MSAWSA)
     if path1 and os.path.exists(path1):
         with open(path1, "rb") as f:
             await context.bot.send_photo(chat_id=config.TARGET_CHAT_ID, photo=f, caption=f"📊 Laporan MSA/WSA\n🕘 {now}")
