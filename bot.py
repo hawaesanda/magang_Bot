@@ -32,18 +32,57 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(
-                viewport={"width": 1920, "height": 1080}
+                viewport={"width": 1920, "height": 1080},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
             page = await context.new_page()
+            page.set_default_timeout(90000)
 
             logger.info(f"Membuka URL: {looker_studio_url}")
-            await page.goto(looker_studio_url, timeout=60000)
+            await page.goto(looker_studio_url, timeout=90000, wait_until="networkidle")
 
-            # Delay agar halaman termuat penuh
-            await page.wait_for_timeout(7000)
+            # Tunggu halaman termuat sepenuhnya
+            await page.wait_for_timeout(5000)
+            
+            # Scroll ke bawah untuk memuat konten lazy-loaded
+            await page.evaluate("""
+                async () => {
+                    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+                    
+                    // Get total height
+                    const totalHeight = Math.max(
+                        document.body.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.clientHeight,
+                        document.documentElement.scrollHeight,
+                        document.documentElement.offsetHeight
+                    );
+                    
+                    const viewportHeight = window.innerHeight;
+                    let currentPosition = 0;
+                    
+                    // Scroll gradually to load all content
+                    while (currentPosition < totalHeight) {
+                        window.scrollTo(0, currentPosition);
+                        await delay(1000); // Wait for content to load
+                        currentPosition += viewportHeight;
+                    }
+                    
+                    // Scroll to bottom to ensure everything is loaded
+                    window.scrollTo(0, totalHeight);
+                    await delay(2000);
+                    
+                    // Scroll back to top for final screenshot
+                    window.scrollTo(0, 0);
+                    await delay(1000);
+                }
+            """)
+            
+            # Tunggu setelah scroll untuk memastikan konten termuat
+            await page.wait_for_timeout(3000)
 
             # Screenshot seluruh halaman
-            await page.screenshot(path=output_filename, full_page=True)
+            await page.screenshot(path=output_filename, full_page=True, timeout=60000)
 
             await browser.close()
 
