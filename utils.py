@@ -51,6 +51,15 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
         # Tunggu agar semua grafik dan elemen muncul
         await page.wait_for_timeout(7000)
 
+        # Untuk monitoring ticket, pastikan semua konten ter-load
+        if "monitoring" in output_filename.lower():
+            # Scroll ke bawah untuk memuat semua data
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(3000)
+            # Scroll kembali ke atas
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.wait_for_timeout(2000)
+
         await page.screenshot(path=temp_path, full_page=True)
         await context.close()
 
