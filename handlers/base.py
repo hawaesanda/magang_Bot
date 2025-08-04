@@ -1,9 +1,12 @@
 import logging
+import os
+import asyncio
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
 import config
 import scheduler
+import utils
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +60,39 @@ async def test_scheduler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"💥 Error dalam test scheduler: {e}")
         await update.message.reply_text(f"❌ Test scheduler gagal: {str(e)}")
+
+async def handle_screenshot_command(update: Update, context: ContextTypes.DEFAULT_TYPE, 
+                                   url: str, filename: str, crop_config: dict, caption: str, 
+                                   loading_text: str = None):
+    """
+    Template function untuk menangani semua command screenshot dengan loading message yang bisa dihapus
+    """
+    if loading_text is None:
+        loading_text = f"Memuat {caption}.\nMohon Tunggu Sebentar..."
+    
+    loading_msg = await update.message.reply_text(loading_text, parse_mode="Markdown")
+
+    try:
+        path = await utils.get_looker_studio_screenshot(url, filename, crop_config)
+        
+        if path and os.path.exists(path):
+            # Hapus pesan loading dulu
+            await loading_msg.delete()
+            await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
+            
+            # Baru kirim foto
+            with open(path, "rb") as f:
+                await update.message.reply_photo(f, caption=caption)
+            os.remove(path)
+            logger.info(f"✅ {caption} berhasil dikirim")
+        else:
+            await loading_msg.delete()
+            await update.message.reply_text(f"❌ Gagal menampilkan {caption.lower()}.\nMohon coba lagi.")
+            logger.error(f"❌ Gagal screenshot {caption}")
+    except Exception as e:
+        logger.error(f"❌ Error di {caption} handler: {e}")
+        try:
+            await loading_msg.delete()
+        except:
+            pass
+        await update.message.reply_text(f"❌ Gagal menampilkan {caption.lower()}.\nMohon coba lagi.")
