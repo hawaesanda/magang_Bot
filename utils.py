@@ -2,6 +2,8 @@ import os
 import logging
 from PIL import Image
 from playwright.async_api import async_playwright
+from telegram import Update
+from telegram.ext import ContextTypes
 import config
 
 # Persistent browser instance
@@ -102,3 +104,55 @@ async def take_monitoring_ticket_screenshot(filename: str):
             print(f"❌ Gagal mengambil screenshot monitoring ticket: {e}")
         finally:
             await browser.close()
+
+# --- Fungsi helper untuk mengirim laporan dengan menghapus pesan loading ---
+async def send_report_with_loading_cleanup(update: Update, context: ContextTypes.DEFAULT_TYPE, 
+                                         loading_message: str, screenshot_url: str, 
+                                         filename: str, crop_box: tuple[int, int, int, int] | None,
+                                         caption: str):
+    """
+    Mengirim laporan dengan menghapus pesan loading setelah gambar terkirim
+    """
+    # Kirim pesan loading
+    loading_msg = await update.message.reply_text(loading_message, parse_mode="Markdown")
+    
+    try:
+        # Ambil screenshot
+        path = await get_looker_studio_screenshot(screenshot_url, filename, crop_box)
+        
+        if path and os.path.exists(path):
+            # Kirim gambar
+            with open(path, "rb") as f:
+                await update.message.reply_photo(f, caption=caption)
+            
+            # Hapus file gambar
+            os.remove(path)
+            
+            # Hapus pesan loading
+            await context.bot.delete_message(
+                chat_id=update.effective_chat.id, 
+                message_id=loading_msg.message_id
+            )
+            
+            return True
+        else:
+            # Jika gagal, edit pesan loading menjadi pesan error
+            await context.bot.edit_message_text(
+                chat_id=update.effective_chat.id,
+                message_id=loading_msg.message_id,
+                text="❌ Gagal menampilkan laporan.\nMohon coba lagi."
+            )
+            return False
+            
+    except Exception as e:
+        logger.error(f"❌ Error saat mengirim laporan: {e}")
+        # Jika terjadi error, edit pesan loading menjadi pesan error
+        try:
+            await context.bot.edit_message_text(
+                chat_id=update.effective_chat.id,
+                message_id=loading_msg.message_id,
+                text="❌ Gagal menampilkan laporan.\nMohon coba lagi."
+            )
+        except:
+            pass
+        return False

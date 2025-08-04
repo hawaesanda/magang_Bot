@@ -9,18 +9,18 @@ logger = logging.getLogger(__name__)
 
 async def im3as(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("📱 IM3AS command dipanggil")
-    await update.message.reply_text("Memuat Dashboard IM3AS.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_IM3AS, "im3as.png", config.CROP_DEFAULT)
-        
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="📱 Dashboard IM3AS")
-            os.remove(path)
-            logger.info("📱 IM3AS command selesai")
-        else:
-            await update.message.reply_text("❌ Gagal menampilkan Dashboard IM3AS.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"📱 Error di IM3AS handler: {e}")
-        await update.message.reply_text("❌ Gagal menampilkan Dashboard IM3AS.\nMohon coba lagi.")
+    
+    success = await utils.send_report_with_loading_cleanup(
+        update=update,
+        context=context,
+        loading_message="Memuat Dashboard IM3AS.\nMohon Tunggu Sebentar...",
+        screenshot_url=config.LOOKER_STUDIO_IM3AS,
+        filename="im3as.png",
+        crop_box=config.CROP_DEFAULT,
+        caption="📱 Dashboard IM3AS"
+    )
+    
+    if success:
+        logger.info("📱 IM3AS command selesai")
+    else:
+        logger.error("📱 IM3AS command gagal")

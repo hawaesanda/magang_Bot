@@ -9,54 +9,54 @@ logger = logging.getLogger(__name__)
 
 async def funneling_indbiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("🏢 Funneling INDBIZ command dipanggil")
-    await update.message.reply_text("Memuat Laporan Funneling INDBIZ.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_FUNNELING_INDBIZ, "funneling_indbiz.png", config.CROP_DEFAULT)
-        
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="🏢 Laporan Funneling INDBIZ")
-            os.remove(path)
-            logger.info("🏢 Funneling INDBIZ command selesai")
-        else:
-            await update.message.reply_text("❌ Gagal menampilkan laporan Funneling INDBIZ.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"🏢 Error di Funneling INDBIZ handler: {e}")
-        await update.message.reply_text("❌ Gagal menampilkan laporan Funneling INDBIZ.\nMohon coba lagi.")
+    
+    success = await utils.send_report_with_loading_cleanup(
+        update=update,
+        context=context,
+        loading_message="Memuat Laporan Funneling INDBIZ.\nMohon Tunggu Sebentar...",
+        screenshot_url=config.LOOKER_STUDIO_FUNNELING_INDBIZ,
+        filename="funneling_indbiz.png",
+        crop_box=config.CROP_DEFAULT,
+        caption="🏢 Laporan Funneling INDBIZ"
+    )
+    
+    if success:
+        logger.info("🏢 Funneling INDBIZ command selesai")
+    else:
+        logger.error("🏢 Funneling INDBIZ command gagal")
 
 async def detail_kendala_indbiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("🏢 Detail Kendala INDBIZ command dipanggil")
-    await update.message.reply_text("Memuat Laporan Detail Kendala INDBIZ.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_DETAIL_KENDALA_INDBIZ, "detail_kendala_indbiz.png", config.CROP_DEFAULT)
-        
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="🏢 Laporan Detail Kendala INDBIZ")
-            os.remove(path)
-            logger.info("🏢 Detail Kendala INDBIZ command selesai")
-        else:
-            await update.message.reply_text("❌ Gagal menampilkan laporan Detail Kendala INDBIZ.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"🏢 Error di Detail Kendala INDBIZ handler: {e}")
-        await update.message.reply_text("❌ Gagal menampilkan laporan Detail Kendala INDBIZ.\nMohon coba lagi.")
+    
+    success = await utils.send_report_with_loading_cleanup(
+        update=update,
+        context=context,
+        loading_message="Memuat Laporan Detail Kendala INDBIZ.\nMohon Tunggu Sebentar...",
+        screenshot_url=config.LOOKER_STUDIO_DETAIL_KENDALA_INDBIZ,
+        filename="detail_kendala_indbiz.png",
+        crop_box=config.CROP_DEFAULT,
+        caption="🏢 Laporan Detail Kendala INDBIZ"
+    )
+    
+    if success:
+        logger.info("🏢 Detail Kendala INDBIZ command selesai")
+    else:
+        logger.error("🏢 Detail Kendala INDBIZ command gagal")
 
 async def detail_wo_indbiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("🏢 Detail WO INDBIZ command dipanggil")
-    await update.message.reply_text("Memuat Laporan Detail WO INDBIZ.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_DETAIL_WO_INDBIZ, "detail_wo_indbiz.png", config.CROP_DEFAULT)
-        
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="🏢 Laporan Detail WO INDBIZ")
-            os.remove(path)
-            logger.info("🏢 Detail WO INDBIZ command selesai")
-        else:
-            await update.message.reply_text("❌ Gagal menampilkan laporan Detail WO INDBIZ.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"🏢 Error di Detail WO INDBIZ handler: {e}")
-        await update.message.reply_text("❌ Gagal menampilkan laporan Detail WO INDBIZ.\nMohon coba lagi.")
+    
+    success = await utils.send_report_with_loading_cleanup(
+        update=update,
+        context=context,
+        loading_message="Memuat Laporan Detail WO INDBIZ.\nMohon Tunggu Sebentar...",
+        screenshot_url=config.LOOKER_STUDIO_DETAIL_WO_INDBIZ,
+        filename="detail_wo_indbiz.png",
+        crop_box=config.CROP_DEFAULT,
+        caption="🏢 Laporan Detail WO INDBIZ"
+    )
+    
+    if success:
+        logger.info("🏢 Detail WO INDBIZ command selesai")
+    else:
+        logger.error("🏢 Detail WO INDBIZ command gagal")
