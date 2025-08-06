@@ -44,7 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/monitoring_ticket_b2b - Monitoring Ticket B2B\n"
         "/performance - Performance\n\n"
         "📱 IMJAS\n"
-        "/im3as - IM3AS Dashboard\n\n"
+        "/imjas - IMJAS Dashboard\n\n"
         "🧪 TEST COMMANDS\n"
         "/test_scheduler - Test Scheduler Manual"
     )
