@@ -38,17 +38,17 @@ async def scheduled_snapshots(context):
         await asyncio.sleep(5)
 
         # PI LATEN - Sudah benar menggunakan retry
-        logger.info("📊 Mulai screenshot PI LATEN")
-        path2 = await get_screenshot_with_retry(config.LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", config.CROP_PILATEN)
-        if path2 and os.path.exists(path2):
-            with open(path2, "rb") as f:
-                await context.bot.send_photo(chat_id=config.TARGET_CHAT_ID, photo=f, caption=f"📊 Laporan PI LATEN\n🕘 {now}")
-            os.remove(path2)
-            logger.info("✅ PI LATEN berhasil dikirim")
-        else:
-            logger.error("❌ Gagal kirim snapshot PI LATEN.")
+        # logger.info("📊 Mulai screenshot PI LATEN")
+        # path2 = await get_screenshot_with_retry(config.LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", config.CROP_PILATEN)
+        # if path2 and os.path.exists(path2):
+        #     with open(path2, "rb") as f:
+        #         await context.bot.send_photo(chat_id=config.TARGET_CHAT_ID, photo=f, caption=f"📊 Laporan PI LATEN\n🕘 {now}")
+        #     os.remove(path2)
+        #     logger.info("✅ PI LATEN berhasil dikirim")
+        # else:
+        #     logger.error("❌ Gagal kirim snapshot PI LATEN.")
             
-        logger.info(f"🎉 Scheduled snapshots selesai pada {now}")
+        # logger.info(f"🎉 Scheduled snapshots selesai pada {now}")
         
     except Exception as e:
         logger.error(f"💥 Error dalam scheduled_snapshots: {e}")

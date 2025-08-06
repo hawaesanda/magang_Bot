@@ -5,7 +5,7 @@ from .assurance import monitoring, closed_ticket, unspec
 from .provisioning import funneling, detail_kendala_psb, detail_wo
 from .indbiz import funneling_indbiz, detail_kendala_indbiz, detail_wo_indbiz
 from .b2b import monitoring_ticket_b2b, performance
-from .im3as import im3as
+from .imjas import im3as
 
 # Make all handlers available when importing from handlers package
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     'funneling', 'detail_kendala_psb', 'detail_wo',
     'funneling_indbiz', 'detail_kendala_indbiz', 'detail_wo_indbiz',
     'monitoring_ticket_b2b', 'performance',
-    'im3as'
+    'imjas'
 ]

@@ -43,7 +43,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🏬 B2B\n"
         "/monitoring_ticket_b2b - Monitoring Ticket B2B\n"
         "/performance - Performance\n\n"
-        "📱 IM3AS\n"
+        "📱 IMJAS\n"
         "/im3as - IM3AS Dashboard\n\n"
         "🧪 TEST COMMANDS\n"
         "/test_scheduler - Test Scheduler Manual"
