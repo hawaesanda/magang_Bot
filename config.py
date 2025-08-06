@@ -7,7 +7,16 @@ load_dotenv()
 
 # --- Konfigurasi ---
 TOKEN = os.getenv("TOKEN")
-TARGET_CHAT_ID = os.getenv("TARGET_CHAT_ID")
+TARGET_CHAT_ID_RAW = os.getenv("TARGET_CHAT_ID")
+
+# Parse TARGET_CHAT_ID menjadi list untuk multiple chat
+if TARGET_CHAT_ID_RAW:
+    TARGET_CHAT_IDS = [chat_id.strip() for chat_id in TARGET_CHAT_ID_RAW.split(",")]
+else:
+    TARGET_CHAT_IDS = []
+
+# Backward compatibility - gunakan chat ID pertama sebagai default
+TARGET_CHAT_ID = TARGET_CHAT_IDS[0] if TARGET_CHAT_IDS else None
 
 # Timezone
 TIMEZONE = pytz.timezone("Asia/Jakarta")

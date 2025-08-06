@@ -28,10 +28,15 @@ async def scheduled_snapshots(context):
         logger.info("📊 Mulai screenshot MSA/WSA")
         path1 = await get_screenshot_with_retry(config.LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png", config.CROP_MSAWSA)
         if path1 and os.path.exists(path1):
-            with open(path1, "rb") as f:
-                await context.bot.send_photo(chat_id=config.TARGET_CHAT_ID, photo=f, caption=f"📊 Laporan MSA/WSA\n🕘 {now}")
+            # Kirim ke semua chat ID
+            for chat_id in config.TARGET_CHAT_IDS:
+                try:
+                    with open(path1, "rb") as f:
+                        await context.bot.send_photo(chat_id=chat_id, photo=f, caption=f"📊 Laporan MSA/WSA\n🕘 {now}")
+                    logger.info(f"✅ MSA/WSA berhasil dikirim ke chat {chat_id}")
+                except Exception as e:
+                    logger.error(f"❌ Gagal kirim MSA/WSA ke chat {chat_id}: {e}")
             os.remove(path1)
-            logger.info("✅ MSA/WSA berhasil dikirim")
         else:
             logger.error("❌ Gagal kirim snapshot MSA/WSA.")
 
@@ -41,10 +46,15 @@ async def scheduled_snapshots(context):
         # logger.info("📊 Mulai screenshot PI LATEN")
         # path2 = await get_screenshot_with_retry(config.LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", config.CROP_PILATEN)
         # if path2 and os.path.exists(path2):
-        #     with open(path2, "rb") as f:
-        #         await context.bot.send_photo(chat_id=config.TARGET_CHAT_ID, photo=f, caption=f"📊 Laporan PI LATEN\n🕘 {now}")
+        #     # Kirim ke semua chat ID
+        #     for chat_id in config.TARGET_CHAT_IDS:
+        #         try:
+        #             with open(path2, "rb") as f:
+        #                 await context.bot.send_photo(chat_id=chat_id, photo=f, caption=f"📊 Laporan PI LATEN\n🕘 {now}")
+        #             logger.info(f"✅ PI LATEN berhasil dikirim ke chat {chat_id}")
+        #         except Exception as e:
+        #             logger.error(f"❌ Gagal kirim PI LATEN ke chat {chat_id}: {e}")
         #     os.remove(path2)
-        #     logger.info("✅ PI LATEN berhasil dikirim")
         # else:
         #     logger.error("❌ Gagal kirim snapshot PI LATEN.")
             
@@ -53,10 +63,15 @@ async def scheduled_snapshots(context):
     except Exception as e:
         logger.error(f"💥 Error dalam scheduled_snapshots: {e}")
         try:
-            await context.bot.send_message(
-                chat_id=config.TARGET_CHAT_ID, 
-                text=f"❌ Error dalam pengiriman otomatis pada {now}:\n{str(e)}"
-            )
+            # Kirim error message ke semua chat ID
+            for chat_id in config.TARGET_CHAT_IDS:
+                try:
+                    await context.bot.send_message(
+                        chat_id=chat_id, 
+                        text=f"❌ Error dalam pengiriman otomatis pada {now}:\n{str(e)}"
+                    )
+                except Exception as send_error:
+                    logger.error(f"💥 Gagal mengirim error message ke chat {chat_id}: {send_error}")
         except Exception as send_error:
             logger.error(f"💥 Gagal mengirim error message: {send_error}")
 
@@ -64,4 +79,5 @@ async def scheduled_snapshots(context):
 async def test_manual_snapshots(context):
     """Test function untuk menjalankan snapshot secara manual"""
     logger.info("🧪 Testing manual snapshots...")
+    logger.info(f"📋 Target Chat IDs: {config.TARGET_CHAT_IDS}")
     await scheduled_snapshots(context)
