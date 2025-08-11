@@ -53,14 +53,10 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
         # Tunggu agar semua grafik dan elemen muncul
         await page.wait_for_timeout(7000)
 
-        # Untuk monitoring ticket, pastikan semua konten ter-load
+        # Untuk monitoring ticket, gunakan fungsi khusus
         if "monitoring" in output_filename.lower():
-            # Scroll ke bawah untuk memuat semua data
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(3000)
-            # Scroll kembali ke atas
-            await page.evaluate("window.scrollTo(0, 0)")
-            await page.wait_for_timeout(2000)
+            await context.close()
+            return await take_monitoring_ticket_screenshot(output_filename)
 
         await page.screenshot(path=temp_path, full_page=True)
         await context.close()
@@ -80,28 +76,61 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
 async def take_monitoring_ticket_screenshot(filename: str):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
+        context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = await context.new_page()
 
         try:
+            print("🔧 Mulai mengakses URL Looker Studio...")
             await page.goto(config.LOOKER_STUDIO_MONITORING, timeout=60000)
 
-            # Tunggu elemen utama muncul
-            await page.wait_for_selector("text=MONITORING TICKET", timeout=15000)
+            # Tunggu halaman dimuat sepenuhnya dengan pendekatan yang lebih sederhana
+            print("🔧 Tunggu halaman dimuat...")
+            await page.wait_for_timeout(10000)  # Tunggu 10 detik untuk halaman dimuat sepenuhnya
+
+            # Tunggu elemen judul muncul
+            try:
+                await page.wait_for_selector("text=MONITORING TICKET", timeout=20000)
+                print("🔧 Judul MONITORING TICKET ditemukan")
+            except:
+                print("🔧 Judul tidak ditemukan, lanjut screenshot...")
+
+            # Scroll bertahap untuk memuat semua konten
+            print("🔧 Mulai scroll untuk memuat konten...")
+            for i in range(20):  # 20 kali scroll
+                scroll_position = (i + 1) * 200
+                await page.evaluate(f"window.scrollTo(0, {scroll_position})")
+                await page.wait_for_timeout(800)  # Tunggu sebentar di setiap scroll
+
+            # Scroll ke paling bawah
+            print("🔧 Scroll ke paling bawah...")
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(8000)  # Tunggu lebih lama di bawah
+
+            # Kembali ke atas untuk screenshot
+            print("🔧 Kembali ke atas untuk screenshot...")
+            await page.evaluate("window.scrollTo(0, 0)")
             await page.wait_for_timeout(3000)
 
-            # Scroll ke bawah agar Looker Studio load semua elemen
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(1000)
-
-            # Ubah viewport sesuai tinggi halaman
-            scroll_height = await page.evaluate("document.body.scrollHeight")
-            await page.set_viewport_size({"width": 1920, "height": scroll_height})
-
-            # Ambil screenshot full
-            await page.screenshot(path=filename, full_page=True)
-            print("✅ Screenshot berhasil diambil.")
+            # Ambil screenshot full page dengan viewport besar
+            print("🔧 Mengambil screenshot...")
+            await page.set_viewport_size({"width": 1920, "height": 4000})
+            await page.wait_for_timeout(2000)
+            
+            # Ambil screenshot full page dulu
+            temp_full_path = f"temp_full_{filename}"
+            await page.screenshot(path=temp_full_path, full_page=True)
+            
+            # Crop screenshot untuk menampilkan bagian yang penting saja
+            # Berdasarkan layout: header + KPI + charts + sebagian tabel
+            crop_box = (480, 80, 1700, 1310)  # Crop dari atas sampai sekitar baris ke-1200px (lebih pendek)
+            
+            cropped_path = crop_image(temp_full_path, filename, crop_box)
+            print("✅ Screenshot monitoring ticket berhasil diambil dan di-crop.")
+            return cropped_path
+            
         except Exception as e:
             print(f"❌ Gagal mengambil screenshot monitoring ticket: {e}")
+            return None
         finally:
             await browser.close()
 
