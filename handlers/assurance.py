@@ -47,9 +47,12 @@ async def closed_ticket(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loading_msg = await update.message.reply_text("Memuat Laporan Closed Ticket.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
 
     try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_CLOSED_TICKET, "closed_ticket.png", config.CROP_DEFAULT)
+        logger.info("📋 Mulai screenshot closed ticket dengan fungsi khusus")
+        # Gunakan fungsi khusus closed ticket
+        path = await utils.take_closed_ticket_screenshot("closed_ticket.png")
         
         if path and os.path.exists(path):
+            logger.info(f"📋 Screenshot berhasil: {path}")
             # Hapus pesan loading dulu
             await loading_msg.delete()
             await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
@@ -60,6 +63,7 @@ async def closed_ticket(update: Update, context: ContextTypes.DEFAULT_TYPE):
             os.remove(path)
             logger.info("📋 Closed Ticket command selesai")
         else:
+            logger.error("📋 Screenshot gagal atau file tidak ada")
             await loading_msg.delete()
             await update.message.reply_text("❌ Gagal menampilkan laporan Closed Ticket.\nMohon coba lagi.")
     except Exception as e:
