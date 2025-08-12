@@ -42,7 +42,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/monitoring_ticket_b2b - Monitoring Ticket B2B\n"
         "/performance - Performance\n\n"
         "📱 IMJAS\n"
-        "/imjas - IM3AS Dashboard"
+        "/imjas - IMJAS Dashboard"
     )
 
 # Command handler for MSA/WSA
@@ -276,22 +276,22 @@ async def performance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"📊 Error di Performance handler: {e}")
         await update.message.reply_text("❌ Gagal menampilkan laporan Performance.\nMohon coba lagi.")
 
-# IM3AS Handler
-async def im3as(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("📱 IM3AS command dipanggil")
-    await update.message.reply_text("Memuat Dashboard IM3AS.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
+# IMJAS Handler
+async def imjas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info("📱 IMJAS command dipanggil")
+    await update.message.reply_text("Memuat Dashboard IMJAS.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
 
     try:
-        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_IM3AS, "im3as.png", config.CROP_DEFAULT)
-        
+        path = await utils.get_looker_studio_screenshot(config.LOOKER_STUDIO_IMJAS, "imjas.png", config.CROP_DEFAULT)
+
         if path and os.path.exists(path):
             with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="📱 Dashboard IM3AS")
+                await update.message.reply_photo(f, caption="📱 Dashboard IMJAS")
             os.remove(path)
-            logger.info("📱 IM3AS command selesai")
+            logger.info("📱 IMJAS command selesai")
         else:
-            await update.message.reply_text("❌ Gagal menampilkan Dashboard IM3AS.\nMohon coba lagi.")
+            await update.message.reply_text("❌ Gagal menampilkan Dashboard IMJAS.\nMohon coba lagi.")
     except Exception as e:
-        logger.error(f"📱 Error di IM3AS handler: {e}")
-        await update.message.reply_text("❌ Gagal menampilkan Dashboard IM3AS.\nMohon coba lagi.")
+        logger.error(f"📱 Error di IMJAS handler: {e}")
+        await update.message.reply_text("❌ Gagal menampilkan Dashboard IMJAS.\nMohon coba lagi.")
 

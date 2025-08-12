@@ -53,6 +53,11 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
         # Tunggu agar semua grafik dan elemen muncul
         await page.wait_for_timeout(7000)
 
+        # Untuk monitoring ticket B2B, gunakan fungsi khusus
+        if "monitoring_ticket_b2b" in output_filename.lower():
+            await context.close()
+            return await take_monitoring_ticket_b2b_screenshot(output_filename)
+        
         # Untuk monitoring ticket, gunakan fungsi khusus
         if "monitoring" in output_filename.lower():
             await context.close()
@@ -82,6 +87,11 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
             await context.close()
             return await take_detail_kendala_psb_screenshot(output_filename)
         
+        # Untuk detail kendala indbiz, gunakan fungsi khusus
+        if "detail_kendala_indbiz" in output_filename.lower():
+            await context.close()
+            return await take_detail_kendala_indbiz_screenshot(output_filename)
+        
         # Untuk detail wo, gunakan fungsi khusus
         if "detail_wo" in output_filename.lower():
             await context.close()
@@ -90,6 +100,11 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
                 return await take_detail_wo_indbiz_screenshot(output_filename)
             else:
                 return await take_detail_wo_screenshot(output_filename)
+        
+        # Untuk IMJAS, gunakan fungsi khusus
+        if "imjas" in output_filename.lower():
+            await context.close()
+            return await take_imjas_screenshot(output_filename)
 
         await page.screenshot(path=temp_path, full_page=True)
         await context.close()
@@ -163,6 +178,68 @@ async def take_monitoring_ticket_screenshot(filename: str):
             
         except Exception as e:
             print(f"❌ Gagal mengambil screenshot monitoring ticket: {e}")
+            return None
+        finally:
+            await browser.close()
+
+# --- Fungsi untuk screenshot monitoring ticket B2B khusus ---
+async def take_monitoring_ticket_b2b_screenshot(filename: str):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = await context.new_page()
+
+        try:
+            print("🔧 Mulai mengakses URL Monitoring Ticket B2B Looker Studio...")
+            await page.goto(config.LOOKER_STUDIO_MONITORING_TICKET_B2B, timeout=60000)
+
+            # Tunggu halaman dimuat sepenuhnya
+            print("🔧 Tunggu halaman dimuat...")
+            await page.wait_for_timeout(10000)
+
+            # Tunggu elemen judul muncul (sesuaikan dengan judul B2B)
+            try:
+                await page.wait_for_selector("text=MONITORING TICKET B2B", timeout=20000)
+                print("🔧 Judul MONITORING TICKET B2B ditemukan")
+            except:
+                print("🔧 Judul tidak ditemukan, lanjut screenshot...")
+
+            # Scroll bertahap untuk memuat semua konten
+            print("🔧 Mulai scroll untuk memuat konten...")
+            for i in range(20):  # 20 kali scroll
+                scroll_position = (i + 1) * 200
+                await page.evaluate(f"window.scrollTo(0, {scroll_position})")
+                await page.wait_for_timeout(800)
+
+            # Scroll ke paling bawah
+            print("🔧 Scroll ke paling bawah...")
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(8000)
+
+            # Kembali ke atas untuk screenshot
+            print("🔧 Kembali ke atas untuk screenshot...")
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.wait_for_timeout(3000)
+
+            # Ambil screenshot full page dengan viewport besar
+            print("🔧 Mengambil screenshot...")
+            await page.set_viewport_size({"width": 1920, "height": 4000})
+            await page.wait_for_timeout(2000)
+            
+            # Ambil screenshot full page dulu
+            temp_full_path = f"temp_full_{filename}"
+            await page.screenshot(path=temp_full_path, full_page=True)
+            
+            # Crop screenshot untuk monitoring ticket B2B - area yang lebih luas
+            # Mencakup: header, filter, charts, dan tabel detail B2B
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
+            
+            cropped_path = crop_image(temp_full_path, filename, crop_box)
+            print("✅ Screenshot monitoring ticket B2B berhasil diambil dan di-crop.")
+            return cropped_path
+            
+        except Exception as e:
+            print(f"❌ Gagal mengambil screenshot monitoring ticket B2B: {e}")
             return None
         finally:
             await browser.close()
@@ -334,7 +411,7 @@ async def take_funneling_screenshot(filename: str):
             
             # Crop screenshot untuk funneling - area yang lebih luas untuk menangkap semua elemen
             # Mencakup: header, date picker, pie chart, semua KPI metrics, arrows, dan tabel
-            crop_box = (480, 80, 1700, 1310)   # Crop yang lebih luas untuk dashboard funneling
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
             
             cropped_path = crop_image(temp_full_path, filename, crop_box)
             print("✅ Screenshot funneling berhasil diambil dan di-crop.")
@@ -389,7 +466,7 @@ async def take_funneling_indbiz_screenshot(filename: str):
             
             # Crop screenshot untuk funneling indbiz - area yang lebih luas untuk menangkap semua elemen
             # Mencakup: header, date picker, pie chart, semua KPI metrics, arrows, dan tabel
-            crop_box = (480, 80, 1700, 1310)   # Crop yang lebih luas untuk dashboard funneling
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
             
             cropped_path = crop_image(temp_full_path, filename, crop_box)
             print("✅ Screenshot funneling indbiz berhasil diambil dan di-crop.")
@@ -444,7 +521,7 @@ async def take_detail_kendala_psb_screenshot(filename: str):
             
             # Crop screenshot untuk detail kendala PSB - area yang lebih luas
             # Mencakup: header, filter, charts, dan tabel detail
-            crop_box = (480, 80, 1700, 1310)   # Crop yang lebih luas untuk dashboard funneling
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
             
             cropped_path = crop_image(temp_full_path, filename, crop_box)
             print("✅ Screenshot detail kendala PSB berhasil diambil dan di-crop.")
@@ -452,6 +529,61 @@ async def take_detail_kendala_psb_screenshot(filename: str):
             
         except Exception as e:
             print(f"❌ Gagal mengambil screenshot detail kendala PSB: {e}")
+            return None
+        finally:
+            await browser.close()
+
+# --- Fungsi untuk screenshot detail kendala INDBIZ khusus ---
+async def take_detail_kendala_indbiz_screenshot(filename: str):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = await context.new_page()
+
+        try:
+            print("🔧 Mulai mengakses URL Detail Kendala INDBIZ Looker Studio...")
+            await page.goto(config.LOOKER_STUDIO_DETAIL_KENDALA_INDBIZ, timeout=60000)
+
+            # Tunggu halaman dimuat sepenuhnya
+            print("🔧 Tunggu halaman dimuat...")
+            await page.wait_for_timeout(10000)
+
+            # Scroll bertahap untuk memuat semua konten
+            print("🔧 Mulai scroll untuk memuat konten...")
+            for i in range(20):  # 20 kali scroll
+                scroll_position = (i + 1) * 200
+                await page.evaluate(f"window.scrollTo(0, {scroll_position})")
+                await page.wait_for_timeout(800)
+
+            # Scroll ke paling bawah
+            print("🔧 Scroll ke paling bawah...")
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(8000)
+
+            # Kembali ke atas untuk screenshot
+            print("🔧 Kembali ke atas untuk screenshot...")
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.wait_for_timeout(3000)
+
+            # Ambil screenshot full page dengan viewport besar
+            print("🔧 Mengambil screenshot...")
+            await page.set_viewport_size({"width": 1920, "height": 4000})
+            await page.wait_for_timeout(2000)
+            
+            # Ambil screenshot full page dulu
+            temp_full_path = f"temp_full_{filename}"
+            await page.screenshot(path=temp_full_path, full_page=True)
+            
+            # Crop screenshot untuk detail kendala INDBIZ - area yang lebih luas
+            # Mencakup: header, filter, charts, dan tabel detail
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
+            
+            cropped_path = crop_image(temp_full_path, filename, crop_box)
+            print("✅ Screenshot detail kendala INDBIZ berhasil diambil dan di-crop.")
+            return cropped_path
+            
+        except Exception as e:
+            print(f"❌ Gagal mengambil screenshot detail kendala INDBIZ: {e}")
             return None
         finally:
             await browser.close()
@@ -499,7 +631,7 @@ async def take_detail_wo_screenshot(filename: str):
             
             # Crop screenshot untuk detail WO - area yang lebih luas
             # Mencakup: header, filter, charts, dan tabel detail
-            crop_box = (480, 80, 1700, 1310)   # Crop yang lebih luas untuk dashboard funneling
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
             
             cropped_path = crop_image(temp_full_path, filename, crop_box)
             print("✅ Screenshot detail WO berhasil diambil dan di-crop.")
@@ -554,7 +686,7 @@ async def take_detail_wo_indbiz_screenshot(filename: str):
             
             # Crop screenshot untuk detail WO INDBIZ - area yang lebih luas
             # Mencakup: header, filter, charts, dan tabel detail
-            crop_box = (480, 80, 1700, 1310)   # Crop yang lebih luas untuk dashboard funneling
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
             
             cropped_path = crop_image(temp_full_path, filename, crop_box)
             print("✅ Screenshot detail WO INDBIZ berhasil diambil dan di-crop.")
@@ -562,6 +694,68 @@ async def take_detail_wo_indbiz_screenshot(filename: str):
             
         except Exception as e:
             print(f"❌ Gagal mengambil screenshot detail WO INDBIZ: {e}")
+            return None
+        finally:
+            await browser.close()
+
+# --- Fungsi untuk screenshot IMJAS khusus ---
+async def take_imjas_screenshot(filename: str):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = await context.new_page()
+
+        try:
+            print("🔧 Mulai mengakses URL IMJAS Looker Studio...")
+            await page.goto(config.LOOKER_STUDIO_IMJAS, timeout=60000)
+
+            # Tunggu halaman dimuat sepenuhnya
+            print("🔧 Tunggu halaman dimuat...")
+            await page.wait_for_timeout(10000)
+
+            # Tunggu elemen judul muncul (sesuaikan dengan judul IMJAS)
+            try:
+                await page.wait_for_selector("text=IMJAS", timeout=20000)
+                print("🔧 Judul IMJAS ditemukan")
+            except:
+                print("🔧 Judul tidak ditemukan, lanjut screenshot...")
+
+            # Scroll bertahap untuk memuat semua konten
+            print("🔧 Mulai scroll untuk memuat konten...")
+            for i in range(20):  # 20 kali scroll
+                scroll_position = (i + 1) * 200
+                await page.evaluate(f"window.scrollTo(0, {scroll_position})")
+                await page.wait_for_timeout(800)
+
+            # Scroll ke paling bawah
+            print("🔧 Scroll ke paling bawah...")
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.wait_for_timeout(8000)
+
+            # Kembali ke atas untuk screenshot
+            print("🔧 Kembali ke atas untuk screenshot...")
+            await page.evaluate("window.scrollTo(0, 0)")
+            await page.wait_for_timeout(3000)
+
+            # Ambil screenshot full page dengan viewport besar
+            print("🔧 Mengambil screenshot...")
+            await page.set_viewport_size({"width": 1920, "height": 4000})
+            await page.wait_for_timeout(2000)
+            
+            # Ambil screenshot full page dulu
+            temp_full_path = f"temp_full_{filename}"
+            await page.screenshot(path=temp_full_path, full_page=True)
+            
+            # Crop screenshot untuk IMJAS - area yang lebih luas
+            # Mencakup: header, filter, charts, dan tabel detail IMJAS
+            crop_box = (480, 80, 1700, 1310)   # Crop dari atas sampai sekitar baris ke-1200px
+            
+            cropped_path = crop_image(temp_full_path, filename, crop_box)
+            print("✅ Screenshot IMJAS berhasil diambil dan di-crop.")
+            return cropped_path
+            
+        except Exception as e:
+            print(f"❌ Gagal mengambil screenshot IMJAS: {e}")
             return None
         finally:
             await browser.close()

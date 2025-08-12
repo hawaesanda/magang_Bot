@@ -8,11 +8,11 @@ from .base import handle_screenshot_command
 
 logger = logging.getLogger(__name__)
 
-async def im3as(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def imjas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info("📱 IMJAS command dipanggil")
     await handle_screenshot_command(
         update, context, 
-        config.LOOKER_STUDIO_IM3AS, 
+        config.LOOKER_STUDIO_IMJAS, 
         "imjas.png", 
         config.CROP_DEFAULT, 
         "📱 Dashboard IMJAS"

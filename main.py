@@ -38,8 +38,8 @@ def main():
     app.add_handler(CommandHandler("monitoring_ticket_b2b", handlers.monitoring_ticket_b2b))
     app.add_handler(CommandHandler("performance", handlers.performance))
     
-    # IM3AS handler
-    app.add_handler(CommandHandler("im3as", handlers.imjas))
+    # IMJAS handler
+    app.add_handler(CommandHandler("imjas", handlers.imjas))
 
     # Jadwal otomatis pukul 10:00, 14:00, 17:00
     job_queue = app.job_queue
