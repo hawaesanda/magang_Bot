@@ -24,56 +24,85 @@ async def scheduled_snapshots(context):
     logger.info(f"⏰ Mengirim snapshot otomatis... [{now}]")
 
     try:
-        # MSA/WSA - Ganti ke retry mechanism
+        # MSA/WSA - dengan file handling yang lebih aman
         logger.info("📊 Mulai screenshot MSA/WSA")
         path1 = await get_screenshot_with_retry(config.LOOKER_STUDIO_MSA_WSA_URL, "auto_msawsa.png", config.CROP_MSAWSA)
+        
         if path1 and os.path.exists(path1):
             # Kirim ke semua chat ID
             for chat_id in config.TARGET_CHAT_IDS:
                 try:
+                    # Buka dan baca file, lalu tutup sebelum kirim
                     with open(path1, "rb") as f:
-                        await context.bot.send_photo(chat_id=chat_id, photo=f, caption=f"📊 Laporan MSA/WSA\n🕘 {now}")
+                        photo_data = f.read()  # Baca data ke memory
+                    
+                    # Kirim dari memory, bukan file handle
+                    await context.bot.send_photo(
+                        chat_id=chat_id, 
+                        photo=photo_data, 
+                        caption=f"📊 Laporan MSA/WSA\n🕘 {now}"
+                    )
                     logger.info(f"✅ MSA/WSA berhasil dikirim ke chat {chat_id}")
                 except Exception as e:
                     logger.error(f"❌ Gagal kirim MSA/WSA ke chat {chat_id}: {e}")
-            os.remove(path1)
+            
+            # Tunggu sebentar sebelum hapus file
+            await asyncio.sleep(2)
+            
+             # Hapus file dengan retry mechanism
+            for attempt in range(3):
+                try:
+                    if os.path.exists(path1):
+                        os.remove(path1)
+                        logger.info("✅ File MSA/WSA berhasil dihapus")
+                        break
+                except Exception as e:
+                    logger.warning(f"⚠️ Attempt {attempt + 1} hapus file gagal: {e}")
+                    if attempt < 2:
+                        await asyncio.sleep(1)
         else:
             logger.error("❌ Gagal kirim snapshot MSA/WSA.")
 
         await asyncio.sleep(5)
 
-        # PI LATEN - Sudah benar menggunakan retry
-        # logger.info("📊 Mulai screenshot PI LATEN")
-        # path2 = await get_screenshot_with_retry(config.LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", config.CROP_PILATEN)
-        # if path2 and os.path.exists(path2):
-        #     # Kirim ke semua chat ID
-        #     for chat_id in config.TARGET_CHAT_IDS:
-        #         try:
-        #             with open(path2, "rb") as f:
-        #                 await context.bot.send_photo(chat_id=chat_id, photo=f, caption=f"📊 Laporan PI LATEN\n🕘 {now}")
-        #             logger.info(f"✅ PI LATEN berhasil dikirim ke chat {chat_id}")
-        #         except Exception as e:
-        #             logger.error(f"❌ Gagal kirim PI LATEN ke chat {chat_id}: {e}")
-        #     os.remove(path2)
-        # else:
-        #     logger.error("❌ Gagal kirim snapshot PI LATEN.")
-            
-        # logger.info(f"🎉 Scheduled snapshots selesai pada {now}")
+        # PI LATEN - dengan perbaikan yang sama
+        logger.info("📊 Mulai screenshot PI LATEN")
+        path2 = await get_screenshot_with_retry(config.LOOKER_STUDIO_PILATEN_URL, "auto_pilaten.png", config.CROP_PILATEN)
         
-    except Exception as e:
-        logger.error(f"💥 Error dalam scheduled_snapshots: {e}")
-        try:
-            # Kirim error message ke semua chat ID
+        if path2 and os.path.exists(path2):
             for chat_id in config.TARGET_CHAT_IDS:
                 try:
-                    await context.bot.send_message(
+                    with open(path2, "rb") as f:
+                        photo_data = f.read()
+                    
+                    await context.bot.send_photo(
                         chat_id=chat_id, 
-                        text=f"❌ Error dalam pengiriman otomatis pada {now}:\n{str(e)}"
+                        photo=photo_data, 
+                        caption=f"📊 Laporan PI LATEN\n🕘 {now}"
                     )
-                except Exception as send_error:
-                    logger.error(f"💥 Gagal mengirim error message ke chat {chat_id}: {send_error}")
-        except Exception as send_error:
-            logger.error(f"💥 Gagal mengirim error message: {send_error}")
+                    logger.info(f"✅ PI LATEN berhasil dikirim ke chat {chat_id}")
+                except Exception as e:
+                    logger.error(f"❌ Gagal kirim PI LATEN ke chat {chat_id}: {e}")
+            
+            await asyncio.sleep(2)
+            
+            for attempt in range(3):
+                try:
+                    if os.path.exists(path2):
+                        os.remove(path2)
+                        logger.info("✅ File PI LATEN berhasil dihapus")
+                        break
+                except Exception as e:
+                    logger.warning(f"⚠️ Attempt {attempt + 1} hapus file gagal: {e}")
+                    if attempt < 2:
+                        await asyncio.sleep(1)
+        else:
+            logger.error("❌ Gagal kirim snapshot PI LATEN.")
+            
+        logger.info(f"🎉 Scheduled snapshots selesai pada {now}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error dalam pengiriman otomatis pada {now}: {e}")
 
 # Test function untuk debugging
 async def test_manual_snapshots(context):
