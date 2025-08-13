@@ -4,7 +4,8 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 import config 
-import utils
+from utils.assurance import take_monitoring_ticket_screenshot, take_closed_ticket_screenshot, take_unspec_screenshot
+from utils.helpers import send_report_with_loading_cleanup
 from .base import handle_screenshot_command
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ async def monitoring(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         logger.info("🔧 Mulai screenshot monitoring ticket dengan fungsi khusus")
         # Gunakan fungsi khusus monitoring ticket
-        path = await utils.take_monitoring_ticket_screenshot("monitoring_ticket.png")
+        path = await take_monitoring_ticket_screenshot("monitoring_ticket.png")
         
         if path and os.path.exists(path):
             logger.info(f"🔧 Screenshot berhasil: {path}")
@@ -49,7 +50,7 @@ async def closed_ticket(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         logger.info("📋 Mulai screenshot closed ticket dengan fungsi khusus")
         # Gunakan fungsi khusus closed ticket
-        path = await utils.take_closed_ticket_screenshot("closed_ticket.png")
+        path = await take_closed_ticket_screenshot("closed_ticket.png")
         
         if path and os.path.exists(path):
             logger.info(f"📋 Screenshot berhasil: {path}")
@@ -81,7 +82,7 @@ async def unspec(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         logger.info("⚠️ Mulai screenshot unspec dengan fungsi khusus")
         # Gunakan fungsi khusus unspec
-        path = await utils.take_unspec_screenshot("unspec.png")
+        path = await take_unspec_screenshot("unspec.png")
         
         if path and os.path.exists(path):
             logger.info(f"⚠️ Screenshot berhasil: {path}")

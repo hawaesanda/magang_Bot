@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 import config
 import scheduler
-import utils
+from utils import get_looker_studio_screenshot
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ async def handle_screenshot_command(update: Update, context: ContextTypes.DEFAUL
     loading_msg = await update.message.reply_text(loading_text, parse_mode="Markdown")
 
     try:
-        path = await utils.get_looker_studio_screenshot(url, filename, crop_config)
+        path = await get_looker_studio_screenshot(url, filename, crop_config)
         
         if path and os.path.exists(path):
             # Hapus pesan loading dulu

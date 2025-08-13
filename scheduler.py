@@ -3,14 +3,14 @@ import asyncio
 import logging
 from datetime import datetime
 import config
-import utils
+from utils import get_looker_studio_screenshot
 
 logger = logging.getLogger(__name__)
 
 async def get_screenshot_with_retry(url, filename, crop, max_retries=2):
     for attempt in range(max_retries):
         try:
-            path = await utils.get_looker_studio_screenshot(url, filename, crop)
+            path = await get_looker_studio_screenshot(url, filename, crop)
             if path and os.path.exists(path):
                 return path
         except Exception as e:
