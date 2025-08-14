@@ -15,6 +15,8 @@ def main():
 
     # Command handlers
     app.add_handler(CommandHandler("start", handlers.start))
+    app.add_handler(CommandHandler("help", handlers.help_menu))
+    app.add_handler(CommandHandler("menu", handlers.menu))
     app.add_handler(CommandHandler("test_scheduler", handlers.test_scheduler))
     app.add_handler(CommandHandler("msawsa", handlers.msawsa))
     app.add_handler(CommandHandler("pilaten", handlers.pilaten))

@@ -30,6 +30,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/pilaten - Laporan PI LATEN\n\n"
         "📊 ASSURANCE\n"
         "/monitoring_ticket - Monitoring Ticket\n"
+        "   ├ /hsa_kepanjen - HSA Kepanjen\n"
+        "   ├ /hsa_blimbing - HSA Blimbing\n"
+        "   ├ /hsa_batu - HSA Batu\n"
+        "   ├ /hsa_klojen - HSA Klojen\n"
+        "   ├ /hsa_malang - HSA Malang\n"
+        "   ├ /hsa_singosari - HSA Singosari\n"
+        "   └ /hsa_turen - HSA Turen\n"
         "/closed_ticket - Closed Ticket\n"
         "/unspec - UNSPEC\n\n"
         "🔧 PROVISIONING\n"
@@ -96,3 +103,11 @@ async def handle_screenshot_command(update: Update, context: ContextTypes.DEFAUL
         except:
             pass
         await update.message.reply_text(f"❌ Gagal menampilkan {caption.lower()}.\nMohon coba lagi.")
+
+async def help_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler untuk command /help - menampilkan daftar semua command yang tersedia"""
+    await start(update, context)  # Gunakan fungsi start yang sama
+
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler untuk command /menu - alias untuk /help"""
+    await start(update, context)  # Gunakan fungsi start yang sama
