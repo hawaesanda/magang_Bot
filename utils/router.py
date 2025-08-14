@@ -1,8 +1,9 @@
 import logging
+import config
 from .base import init_browser
 
 # Import semua fungsi screenshot khusus
-from .assurance import take_monitoring_ticket_screenshot, take_closed_ticket_screenshot, take_unspec_screenshot
+from .assurance import take_monitoring_ticket_screenshot, take_monitoring_ticket_per_hsa_screenshot, take_closed_ticket_screenshot, take_unspec_screenshot
 from .provisioning import take_funneling_screenshot, take_detail_kendala_psb_screenshot, take_detail_wo_screenshot
 from .indbiz import take_funneling_indbiz_screenshot, take_detail_kendala_indbiz_screenshot, take_detail_wo_indbiz_screenshot
 from .b2b import take_monitoring_ticket_b2b_screenshot, take_performance_b2b_screenshot
@@ -41,9 +42,15 @@ async def get_looker_studio_screenshot(looker_studio_url: str, output_filename: 
             await context.close()
             return await take_monitoring_ticket_b2b_screenshot(output_filename)
         
-        # Untuk monitoring ticket, gunakan fungsi khusus
+        # Untuk monitoring ticket, cek apakah ada HSA spesifik
         if "monitoring" in output_filename.lower():
             await context.close()
+            # Cek apakah ada HSA spesifik di filename
+            for hsa in config.HSA_LIST_MONITORING:
+                hsa_key = hsa.replace("HSA ", "").lower()  # "KEPANJEN", "BLIMBING", dll
+                if hsa_key in output_filename.lower():
+                    return await take_monitoring_ticket_per_hsa_screenshot(hsa, output_filename)
+            # Jika tidak ada HSA spesifik, gunakan monitoring umum
             return await take_monitoring_ticket_screenshot(output_filename)
         
         # Untuk closed ticket, gunakan fungsi khusus

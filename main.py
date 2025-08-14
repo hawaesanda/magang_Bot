@@ -24,6 +24,15 @@ def main():
     app.add_handler(CommandHandler("closed_ticket", handlers.closed_ticket))
     app.add_handler(CommandHandler("unspec", handlers.unspec))
     
+    # MONITORING TICKET per HSA handlers
+    app.add_handler(CommandHandler("hsa_kepanjen", handlers.hsa_kepanjen))
+    app.add_handler(CommandHandler("hsa_blimbing", handlers.hsa_blimbing))
+    app.add_handler(CommandHandler("hsa_batu", handlers.hsa_batu))
+    app.add_handler(CommandHandler("hsa_klojen", handlers.hsa_klojen))
+    app.add_handler(CommandHandler("hsa_malang", handlers.hsa_malang))
+    app.add_handler(CommandHandler("hsa_singosari", handlers.hsa_singosari))
+    app.add_handler(CommandHandler("hsa_turen", handlers.hsa_turen))
+    
     # PROVISIONING handlers
     app.add_handler(CommandHandler("funneling", handlers.funneling))
     app.add_handler(CommandHandler("detail_kendala_psb", handlers.detail_kendala_psb))

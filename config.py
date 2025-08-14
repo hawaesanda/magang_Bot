@@ -28,7 +28,7 @@ CROP_MSAWSA = (350, 80, 1580, 1020)
 CROP_PILATEN = (480, 80, 1700, 1020)
 
 # Monitoring Ticket
-CROP_MONITORING = None  # Menggunakan full page screenshot untuk menangkap semua konten
+CROP_MONITORING = (480, 80, 1700, 1310)  # Crop standar seperti dashboard lain
 HSA_LIST_MONITORING = [
     "HSA KEPANJEN",
     "HSA BLIMBING", 

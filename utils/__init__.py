@@ -7,6 +7,7 @@ from .helpers import send_report_with_loading_cleanup
 # Import specialized screenshot functions
 from .assurance import (
     take_monitoring_ticket_screenshot,
+    take_monitoring_ticket_per_hsa_screenshot,
     take_closed_ticket_screenshot,
     take_unspec_screenshot
 )
@@ -42,6 +43,7 @@ __all__ = [
     
     # Assurance functions
     'take_monitoring_ticket_screenshot',
+    'take_monitoring_ticket_per_hsa_screenshot',
     'take_closed_ticket_screenshot',
     'take_unspec_screenshot',
     
