@@ -26,8 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"Halo, {greeting}!\n\n"
         "Silakan pilih laporan yang ingin anda tampilkan:\n\n"
-        "/msawsa - Laporan MSA/WSA\n"
-        "/pilaten - Laporan PI LATEN\n\n"
+        "/msawsa - Laporan MSA/WSA\n\n"
         "📊 ASSURANCE\n"
         "/monitoring_ticket - Monitoring Ticket\n"
         "   ├ /hsa_kepanjen - HSA Kepanjen\n"
