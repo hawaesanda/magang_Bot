@@ -1,164 +1,185 @@
 import os
-import asyncio
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 import config 
-from utils.assurance import take_monitoring_ticket_screenshot, take_monitoring_ticket_per_hsa_screenshot, take_closed_ticket_screenshot, take_unspec_screenshot
-from utils.helpers import send_report_with_loading_cleanup
-from .base import handle_screenshot_command
+import utils
+from .base import handle_screenshot_command, handle_screenshot_callback
 
 logger = logging.getLogger(__name__)
 
-# Command handler for monitoring ticket
+# Command handlers (existing)
 async def monitoring(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("🔧 Monitoring command dipanggil")
-    loading_msg = await update.message.reply_text("Memuat Laporan Monitoring Ticket.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        logger.info("🔧 Mulai screenshot monitoring ticket dengan fungsi khusus")
-        # Gunakan fungsi khusus monitoring ticket
-        path = await take_monitoring_ticket_screenshot("monitoring_ticket.png")
-        
-        if path and os.path.exists(path):
-            logger.info(f"🔧 Screenshot berhasil: {path}")
-            # Hapus pesan loading dulu
-            await loading_msg.delete()
-            await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
-            
-            # Baru kirim foto
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="📊 Laporan Monitoring Ticket")
-            os.remove(path)
-            logger.info("🔧 Monitoring command selesai")
-        else:
-            logger.error("🔧 Screenshot gagal atau file tidak ada")
-            await loading_msg.delete()
-            await update.message.reply_text("❌ Gagal menampilkan laporan Monitoring Ticket.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"🔧 Error di monitoring handler: {e}")
-        try:
-            await loading_msg.delete()
-        except:
-            pass
-        await update.message.reply_text("❌ Gagal menampilkan laporan Monitoring Ticket.\nMohon coba lagi.")
+    """Handler untuk command /monitoring_ticket"""
+    logger.info("📊 Monitoring Ticket command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "monitoring.png", 
+        config.CROP_MONITORING, 
+        "📊 Monitoring Ticket",
+        "📊 Memuat Monitoring Ticket...\nMohon tunggu sebentar..."
+    )
 
 async def closed_ticket(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("📋 Closed Ticket command dipanggil")
-    loading_msg = await update.message.reply_text("Memuat Laporan Closed Ticket.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
-
-    try:
-        logger.info("📋 Mulai screenshot closed ticket dengan fungsi khusus")
-        # Gunakan fungsi khusus closed ticket
-        path = await take_closed_ticket_screenshot("closed_ticket.png")
-        
-        if path and os.path.exists(path):
-            logger.info(f"📋 Screenshot berhasil: {path}")
-            # Hapus pesan loading dulu
-            await loading_msg.delete()
-            await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
-            
-            # Baru kirim foto
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="📋 Laporan Closed Ticket")
-            os.remove(path)
-            logger.info("📋 Closed Ticket command selesai")
-        else:
-            logger.error("📋 Screenshot gagal atau file tidak ada")
-            await loading_msg.delete()
-            await update.message.reply_text("❌ Gagal menampilkan laporan Closed Ticket.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"📋 Error di closed ticket handler: {e}")
-        try:
-            await loading_msg.delete()
-        except:
-            pass
-        await update.message.reply_text("❌ Gagal menampilkan laporan Closed Ticket.\nMohon coba lagi.")
+    """Handler untuk command /closed_ticket"""
+    logger.info("✅ Closed Ticket command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_CLOSED_TICKET, 
+        "closed_ticket.png", 
+        config.CROP_DEFAULT, 
+        "✅ Closed Ticket",
+        "✅ Memuat Closed Ticket...\nMohon tunggu sebentar..."
+    )
 
 async def unspec(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handler untuk command /unspec"""
     logger.info("⚠️ UNSPEC command dipanggil")
-    loading_msg = await update.message.reply_text("Memuat Laporan UNSPEC.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_UNSPEC, 
+        "unspec.png", 
+        config.CROP_DEFAULT, 
+        "⚠️ UNSPEC",
+        "⚠️ Memuat UNSPEC...\nMohon tunggu sebentar..."
+    )
 
-    try:
-        logger.info("⚠️ Mulai screenshot unspec dengan fungsi khusus")
-        # Gunakan fungsi khusus unspec
-        path = await take_unspec_screenshot("unspec.png")
-        
-        if path and os.path.exists(path):
-            logger.info(f"⚠️ Screenshot berhasil: {path}")
-            # Hapus pesan loading dulu
-            await loading_msg.delete()
-            await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
-            
-            # Baru kirim foto
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption="⚠️ Laporan UNSPEC")
-            os.remove(path)
-            logger.info("⚠️ UNSPEC command selesai")
-        else:
-            logger.error("⚠️ Screenshot gagal atau file tidak ada")
-            await loading_msg.delete()
-            await update.message.reply_text("❌ Gagal menampilkan laporan UNSPEC.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"⚠️ Error di UNSPEC handler: {e}")
-        try:
-            await loading_msg.delete()
-        except:
-            pass
-        await update.message.reply_text("❌ Gagal menampilkan laporan UNSPEC.\nMohon coba lagi.")
-
-# Command handlers untuk monitoring ticket per HSA
+# HSA Commands
 async def hsa_kepanjen(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA KEPANJEN", "📊 Laporan Monitoring Ticket - HSA KEPANJEN")
+    """Handler untuk command /hsa_kepanjen"""
+    logger.info("🏢 HSA Kepanjen command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_kepanjen.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Kepanjen",
+        "🏢 Memuat HSA Kepanjen...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_blimbing(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA BLIMBING", "📊 Laporan Monitoring Ticket - HSA BLIMBING")
+    """Handler untuk command /hsa_blimbing"""
+    logger.info("🏢 HSA Blimbing command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_blimbing.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Blimbing",
+        "🏢 Memuat HSA Blimbing...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_batu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA BATU", "📊 Laporan Monitoring Ticket - HSA BATU")
+    """Handler untuk command /hsa_batu"""
+    logger.info("🏢 HSA Batu command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_batu.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Batu",
+        "🏢 Memuat HSA Batu...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_klojen(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA KLOJEN", "📊 Laporan Monitoring Ticket - HSA KLOJEN")
+    """Handler untuk command /hsa_klojen"""
+    logger.info("🏢 HSA Klojen command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_klojen.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Klojen",
+        "🏢 Memuat HSA Klojen...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_malang(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA MALANG", "📊 Laporan Monitoring Ticket - HSA MALANG")
+    """Handler untuk command /hsa_malang"""
+    logger.info("🏢 HSA Malang command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_malang.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Malang",
+        "🏢 Memuat HSA Malang...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_singosari(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA SINGOSARI", "📊 Laporan Monitoring Ticket - HSA SINGOSARI")
+    """Handler untuk command /hsa_singosari"""
+    logger.info("🏢 HSA Singosari command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_singosari.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Singosari",
+        "🏢 Memuat HSA Singosari...\nMohon tunggu sebentar..."
+    )
 
 async def hsa_turen(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await monitoring_per_hsa(update, context, "HSA TUREN", "📊 Laporan Monitoring Ticket - HSA TUREN")
+    """Handler untuk command /hsa_turen"""
+    logger.info("🏢 HSA Turen command dipanggil")
+    await handle_screenshot_command(
+        update, context, 
+        config.LOOKER_STUDIO_MONITORING, 
+        "hsa_turen.png", 
+        config.CROP_MONITORING, 
+        "🏢 HSA Turen",
+        "🏢 Memuat HSA Turen...\nMohon tunggu sebentar..."
+    )
 
-# Helper function untuk monitoring per HSA
-async def monitoring_per_hsa(update: Update, context: ContextTypes.DEFAULT_TYPE, hsa_name: str, caption: str):
-    logger.info(f"🔧 Monitoring {hsa_name} command dipanggil")
-    loading_msg = await update.message.reply_text(f"Memuat Laporan Monitoring Ticket {hsa_name}.\nMohon Tunggu Sebentar...", parse_mode="Markdown")
+# Callback handlers for menu buttons
+async def monitoring_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback handler untuk tombol Monitoring Ticket di menu"""
+    logger.info("📊 Monitoring Ticket callback dipanggil")
+    await handle_screenshot_callback(
+        update, context,
+        url=config.LOOKER_STUDIO_MONITORING,
+        filename="monitoring.png",
+        crop_config=config.CROP_MONITORING,
+        caption="📊 Monitoring Ticket",
+        loading_text="📊 Memuat Monitoring Ticket...\nMohon tunggu sebentar...",
+        back_menu="menu_monitoring"
+    )
 
-    try:
-        logger.info(f"🔧 Mulai screenshot monitoring ticket untuk {hsa_name}")
-        # Gunakan fungsi khusus monitoring ticket per HSA
-        filename = f"monitoring_ticket_{hsa_name.lower().replace('hsa ', '').replace(' ', '_')}.png"
-        path = await take_monitoring_ticket_per_hsa_screenshot(hsa_name, filename)
-        
-        if path and os.path.exists(path):
-            logger.info(f"🔧 Screenshot berhasil: {path}")
-            # Hapus pesan loading dulu
-            await loading_msg.delete()
-            await asyncio.sleep(0.5)  # Delay kecil untuk memastikan pesan terhapus
-            
-            # Baru kirim foto
-            with open(path, "rb") as f:
-                await update.message.reply_photo(f, caption=caption)
-            os.remove(path)
-            logger.info(f"🔧 Monitoring {hsa_name} command selesai")
-        else:
-            logger.error("🔧 Screenshot gagal atau file tidak ada")
-            await loading_msg.delete()
-            await update.message.reply_text(f"❌ Gagal menampilkan laporan Monitoring Ticket {hsa_name}.\nMohon coba lagi.")
-    except Exception as e:
-        logger.error(f"🔧 Error di monitoring {hsa_name} handler: {e}")
-        try:
-            await loading_msg.delete()
-        except:
-            pass
-        await update.message.reply_text(f"❌ Gagal menampilkan laporan Monitoring Ticket {hsa_name}.\nMohon coba lagi.")
+async def closed_ticket_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback handler untuk tombol Closed Ticket di menu"""
+    logger.info("✅ Closed Ticket callback dipanggil")
+    await handle_screenshot_callback(
+        update, context,
+        url=config.LOOKER_STUDIO_CLOSED_TICKET,
+        filename="closed_ticket.png",
+        crop_config=config.CROP_DEFAULT,
+        caption="✅ Closed Ticket",
+        loading_text="✅ Memuat Closed Ticket...\nMohon tunggu sebentar...",
+        back_menu="menu_assurance"
+    )
+
+async def unspec_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback handler untuk tombol UNSPEC di menu"""
+    logger.info("⚠️ UNSPEC callback dipanggil")
+    await handle_screenshot_callback(
+        update, context,
+        url=config.LOOKER_STUDIO_UNSPEC,
+        filename="unspec.png",
+        crop_config=config.CROP_DEFAULT,
+        caption="⚠️ UNSPEC",
+        loading_text="⚠️ Memuat UNSPEC...\nMohon tunggu sebentar...",
+        back_menu="menu_assurance"
+    )
+
+async def hsa_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, hsa_name: str):
+    """Generic callback handler untuk HSA buttons"""
+    hsa_display_name = f"HSA {hsa_name.title()}"
+    logger.info(f"🏢 {hsa_display_name} callback dipanggil")
+    await handle_screenshot_callback(
+        update, context,
+        url=config.LOOKER_STUDIO_MONITORING,
+        filename=f"hsa_{hsa_name.lower()}.png",
+        crop_config=config.CROP_MONITORING,
+        caption=f"🏢 {hsa_display_name}",
+        loading_text=f"🏢 Memuat {hsa_display_name}...\nMohon tunggu sebentar...",
+        back_menu="menu_monitoring"
+    )

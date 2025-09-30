@@ -1,5 +1,5 @@
 import logging
-from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 from datetime import time as dt_time
 import config
 import handlers
@@ -17,9 +17,7 @@ def main():
     app.add_handler(CommandHandler("start", handlers.start))
     app.add_handler(CommandHandler("help", handlers.help_menu))
     app.add_handler(CommandHandler("menu", handlers.menu))
-    app.add_handler(CommandHandler("test_scheduler", handlers.test_scheduler))
     app.add_handler(CommandHandler("msawsa", handlers.msawsa))
-    app.add_handler(CommandHandler("pilaten", handlers.pilaten))
     app.add_handler(CommandHandler("monitoring_ticket", handlers.monitoring))
     
     # ASSURANCE handlers
@@ -51,6 +49,9 @@ def main():
     
     # IMJAS handler
     app.add_handler(CommandHandler("imjas", handlers.imjas))
+
+    # Callback query handler untuk inline keyboard
+    app.add_handler(CallbackQueryHandler(handlers.handle_callback_query))
 
     # Jadwal otomatis pukul 10:00, 14:00, 17:00
     job_queue = app.job_queue
