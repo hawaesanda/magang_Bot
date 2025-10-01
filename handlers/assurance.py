@@ -386,7 +386,14 @@ async def back_to_assurance_callback(update: Update, context: ContextTypes.DEFAU
     try:
         # Kirim pesan menu ASSURANCE baru tanpa menghapus foto
         text = "🛡️ ASSURANCE\n\nPilih laporan yang ingin ditampilkan:"
-        await query.message.reply_text(text, reply_markup=get_assurance_menu())
+        keyboard = [
+            [InlineKeyboardButton("📊 Monitoring Ticket", callback_data="monitoring")],
+            [InlineKeyboardButton("✅ Closed Ticket", callback_data="closed_ticket")],
+            [InlineKeyboardButton("⚠️ UNSPEC", callback_data="unspec")],
+            [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_main")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.message.reply_text(text, reply_markup=reply_markup)
         
         logger.info("🔙 Berhasil menampilkan menu ASSURANCE")
     except Exception as e:
@@ -394,7 +401,14 @@ async def back_to_assurance_callback(update: Update, context: ContextTypes.DEFAU
         # Fallback: coba kirim pesan tanpa reply markup
         try:
             text = "🛡️ ASSURANCE\n\nPilih laporan yang ingin ditampilkan:"
-            await query.message.reply_text(text, reply_markup=get_assurance_menu())
+            keyboard = [
+                [InlineKeyboardButton("📊 Monitoring Ticket", callback_data="monitoring")],
+                [InlineKeyboardButton("✅ Closed Ticket", callback_data="closed_ticket")],
+                [InlineKeyboardButton("⚠️ UNSPEC", callback_data="unspec")],
+                [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.message.reply_text(text, reply_markup=reply_markup)
         except Exception as e2:
             logger.error(f"🔙 Error fallback: {e2}")
 
