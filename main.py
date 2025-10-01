@@ -50,7 +50,11 @@ def main():
     # IMJAS handler
     app.add_handler(CommandHandler("imjas", handlers.imjas))
 
-    # Callback query handler untuk inline keyboard
+    # Callback query handlers untuk inline keyboard
+    # Handler khusus untuk callback "assurance" harus sebelum handler umum
+    app.add_handler(CallbackQueryHandler(handlers.assurance_menu_callback, pattern="^assurance$"))
+    
+    # Handler umum untuk callback query lainnya
     app.add_handler(CallbackQueryHandler(handlers.handle_callback_query))
 
     # Jadwal otomatis pukul 10:00, 14:00, 17:00
