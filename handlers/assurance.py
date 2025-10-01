@@ -433,3 +433,41 @@ async def assurance_menu_callback(update: Update, context: ContextTypes.DEFAULT_
         await query.message.reply_text(
             "🛡️ ASSURANCE\n\nSilakan gunakan /menu untuk kembali ke menu utama."
         )
+
+# Tambahkan setelah fungsi assurance_menu_callback
+async def back_to_main_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback handler untuk tombol kembali ke menu utama"""
+    logger.info("🔙 Callback back to main menu dipanggil")
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        # Pertama, hapus tombol dari pesan menu ASSURANCE
+        try:
+            await query.edit_message_reply_markup(reply_markup=None)
+            logger.info("🔙 Berhasil menghapus tombol dari menu ASSURANCE")
+        except Exception as edit_error:
+            logger.warning(f"🔙 Tidak bisa mengedit reply markup: {edit_error}")
+        
+        # Import show_main_menu dari base
+        from .base import show_main_menu
+        
+        # Panggil fungsi show_main_menu
+        await show_main_menu(update, context)
+        
+        logger.info("🔙 Berhasil kembali ke menu utama")
+    except Exception as e:
+        logger.error(f"🔙 Error saat kembali ke menu utama: {e}")
+        # Fallback: kirim pesan menu utama sederhana
+        text = "🏠 **Menu Utama**\n\nHalo, Selamat pagi!\n\nSilakan pilih kategori laporan yang ingin anda lihat:"
+        keyboard = [
+            [InlineKeyboardButton("📊 MSA/WSA", callback_data="msawsa")],
+            [InlineKeyboardButton("🛡️ ASSURANCE", callback_data="assurance")],
+            [InlineKeyboardButton("🔧 PROVISIONING", callback_data="provisioning")],
+            [InlineKeyboardButton("🏢 INDBIZ", callback_data="indbiz")],
+            [InlineKeyboardButton("🏬 B2B", callback_data="b2b")],
+            [InlineKeyboardButton("📱 IMJAS", callback_data="imjas")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")

@@ -51,8 +51,11 @@ def main():
     app.add_handler(CommandHandler("imjas", handlers.imjas))
 
     # Callback query handlers untuk inline keyboard
-    # Handler khusus untuk callback "assurance" harus sebelum handler umum
+    # Handler khusus untuk callback "assurance" 
     app.add_handler(CallbackQueryHandler(handlers.assurance_menu_callback, pattern="^assurance$"))
+    
+    # Handler khusus untuk callback "back_to_main"
+    app.add_handler(CallbackQueryHandler(handlers.back_to_main_callback, pattern="^back_to_main$"))
     
     # Handler umum untuk callback query lainnya
     app.add_handler(CallbackQueryHandler(handlers.handle_callback_query))
