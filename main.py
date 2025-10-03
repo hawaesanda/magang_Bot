@@ -20,6 +20,9 @@ def main():
     app.add_handler(CommandHandler("msawsa", handlers.msawsa))
     app.add_handler(CommandHandler("monitoring_ticket", handlers.monitoring))
     
+    # Tambahkan command untuk cek chat ID
+    app.add_handler(CommandHandler("chatid", handlers.get_chat_id))
+    
     # ASSURANCE handlers
     app.add_handler(CommandHandler("closed_ticket", handlers.closed_ticket))
     app.add_handler(CommandHandler("unspec", handlers.unspec))
@@ -60,7 +63,7 @@ def main():
     # Handler umum untuk callback query lainnya
     app.add_handler(CallbackQueryHandler(handlers.handle_callback_query))
 
-    # Jadwal otomatis pukul 10:00, 14:00, 17:00
+    # Jadwal otomatis pukul 10:00, 15:00, 17:00
     job_queue = app.job_queue
     job_queue.run_daily(scheduler.scheduled_snapshots, time=dt_time(10, 0, tzinfo=config.TIMEZONE), name="job_pukul_10")
     job_queue.run_daily(scheduler.scheduled_snapshots, time=dt_time(15, 0, tzinfo=config.TIMEZONE ), name="job_pukul_15")

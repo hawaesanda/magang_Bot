@@ -327,3 +327,16 @@ async def help_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler untuk command /menu - alias untuk /help"""
     await start(update, context)  # Gunakan fungsi start yang sama
+
+async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Menampilkan chat ID dari chat saat ini"""
+    chat_id = update.effective_chat.id
+    chat_type = update.effective_chat.type
+    chat_title = update.effective_chat.title if update.effective_chat.title else "Private Chat"
+    
+    message = f"📋 **Info Chat**\n\n"
+    message += f"**Chat ID:** `{chat_id}`\n"
+    message += f"**Chat Type:** {chat_type}\n"
+    message += f"**Chat Title:** {chat_title}"
+    
+    await update.message.reply_text(message, parse_mode="Markdown")

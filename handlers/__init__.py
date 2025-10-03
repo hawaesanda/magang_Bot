@@ -2,7 +2,8 @@
 from .base import (
     start, test_scheduler, help_menu, menu, handle_callback_query,
     show_assurance_menu, show_monitoring_menu, show_provisioning_menu, 
-    show_indbiz_menu, show_b2b_menu, show_main_menu, handle_screenshot_callback
+    show_indbiz_menu, show_b2b_menu, show_main_menu, handle_screenshot_callback,
+    get_chat_id  # tambahkan ini
 )
 from .reports import msawsa  # pilaten dihapus
 from .assurance import (
@@ -29,6 +30,7 @@ __all__ = [
     'start', 'test_scheduler', 'help_menu', 'menu', 'handle_callback_query',
     'show_assurance_menu', 'show_monitoring_menu', 'show_provisioning_menu', 
     'show_indbiz_menu', 'show_b2b_menu', 'show_main_menu', 'handle_screenshot_callback',
+    'get_chat_id',  # tambahkan ini
     'msawsa',  # pilaten dihapus
     'monitoring', 'closed_ticket', 'unspec',
     'hsa_kepanjen', 'hsa_blimbing', 'hsa_batu', 'hsa_klojen', 'hsa_malang', 'hsa_singosari', 'hsa_turen',
